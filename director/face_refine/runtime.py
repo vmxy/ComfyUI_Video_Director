@@ -12,7 +12,7 @@ from .inject import inject_video_latent
 from .stitch import stitch_faces
 from .track import track_and_crop
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.face_refine")
+log = logging.getLogger("ComfyUI-VideoDirector.director.face_refine")
 
 
 def _pad_frames(frames: torch.Tensor, length: int) -> torch.Tensor:

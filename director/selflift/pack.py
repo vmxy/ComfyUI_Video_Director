@@ -1,4 +1,4 @@
-"""Graph pack for MiniMax H3 Director.selflift (first-pass progressive sample)."""
+"""Graph pack for VideoDirector.selflift (first-pass progressive sample)."""
 
 from __future__ import annotations
 

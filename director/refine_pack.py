@@ -1,6 +1,6 @@
-"""External Refine pack for MiniMax H3 Director (graph-wired config).
+"""External Refine pack for VideoDirector (graph-wired config).
 
-Connect ``MiniMaxH3DirectorRefine.refine`` → ``MiniMaxH3Director.refine``.
+Connect ``VDRefine.refine`` → ``VD.refine``.
 Unconnected = current single-pass sampling.
 """
 

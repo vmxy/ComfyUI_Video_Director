@@ -12,7 +12,7 @@ from ..h3_motion_context import _repack_av_streams, _streams_from_latent
 from .cond import interpolate_video_5d, resize_av_video
 from .grid import pixel_to_latent_hw
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.selflift.lift")
+log = logging.getLogger("ComfyUI-VideoDirector.selflift.lift")
 
 
 def _as_video_dict(video: torch.Tensor) -> dict:

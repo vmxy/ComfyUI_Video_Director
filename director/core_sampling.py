@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.core_sampling")
+log = logging.getLogger("ComfyUI-VideoDirector.director.core_sampling")
 
 PhaseCallback = Callable[[str, float], None]
 StepPreviewCallback = Callable[[int, int, Any], None]

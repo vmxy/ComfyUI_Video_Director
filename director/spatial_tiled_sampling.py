@@ -18,7 +18,7 @@ from typing import Any, Callable
 import torch
 import torch.nn.functional as F
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.spatial_tiles")
+log = logging.getLogger("ComfyUI-VideoDirector.director.spatial_tiles")
 
 VAE_SPATIAL = 16
 # Long-side pixel size at or below this skips tiling (same 16× latent grid as H3).

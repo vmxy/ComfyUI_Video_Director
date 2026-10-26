@@ -9,7 +9,7 @@ import logging
 
 import torch
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.face_refine")
+log = logging.getLogger("ComfyUI-VideoDirector.director.face_refine")
 
 
 def inject_video_latent(av_latent: dict, images: torch.Tensor, vae) -> dict:

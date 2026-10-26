@@ -21,7 +21,7 @@ from .refine_pack import (
     refine_uses_h3_latent,
 )
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.refine")
+log = logging.getLogger("ComfyUI-VideoDirector.director.refine")
 
 PhaseCallback = Callable[[str, float], None]
 StepPreviewCallback = Callable[[int, int, Any], None]

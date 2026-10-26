@@ -209,8 +209,8 @@ if comfy_io is not None:
         @classmethod
         def define_schema(cls):
             return comfy_io.Schema(
-                node_id="MiniMaxH3DirectorGroupReferenceToVideo",
-                display_name="MiniMax H3 Director Group (Reference to Video)",
+                node_id="VDGroupReferenceToVideo",
+                display_name="VideoDirector Group (Reference to Video)",
                 category=_CATEGORY,
                 description=(
                     "Pack one MiniMax H3 Reference to Video group for Director.r2v_groups. "
@@ -331,8 +331,8 @@ if comfy_io is not None:
         @classmethod
         def define_schema(cls):
             return comfy_io.Schema(
-                node_id="MiniMaxH3DirectorGroupsCombine",
-                display_name="MiniMax H3 Director Groups Combine",
+                node_id="VDGroupsCombine",
+                display_name="VideoDirector Groups Combine",
                 category=_CATEGORY,
                 description=(
                     "Combine multiple Director Group outputs into one list for the Director. "

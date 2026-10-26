@@ -57,7 +57,7 @@ function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = filename || "MiniMaxH3Director.mmxpack.zip";
+    a.download = filename || "VideoDirector.mmxpack.zip";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -166,8 +166,8 @@ function postPackUpload(file, onUploadDone) {
         body.append("pack", file, file.name || "pack.mmxpack.zip");
         const xhr = new XMLHttpRequest();
         const url = typeof api.apiURL === "function"
-            ? api.apiURL("/minimax/director/import_pack")
-            : "/minimax/director/import_pack";
+            ? api.apiURL("/videodirector/import_pack")
+            : "/videodirector/import_pack";
         xhr.open("POST", url);
         xhr.upload.onprogress = (e) => {
             if (e.lengthComputable && e.total > 0) onUploadDone?.("upload", e.loaded / e.total);
@@ -219,7 +219,7 @@ async function uploadZipChunked(file, onProgress) {
         body.append("total_chunks", String(totalChunks));
         body.append("filename", zipName);
         body.append("chunk", file.slice(start, end), `${zipName}.part`);
-        const resp = await api.fetchApi("/minimax/director/upload_chunk", { method: "POST", body });
+        const resp = await api.fetchApi("/videodirector/upload_chunk", { method: "POST", body });
         if (!resp.ok) {
             const text = await resp.text();
             throw new Error(text || t("upload.chunkFailed", { status: resp.status }));
@@ -237,11 +237,11 @@ export async function exportDirectorPack(editor) {
     const widgets = collectPackWidgets(editor);
     const progress = openPackProgress(editor, "pack.exportProgressTitle");
     let missing = [];
-    let downloadName = "MiniMaxH3Director.mmxpack.zip";
+    let downloadName = "VideoDirector.mmxpack.zip";
     let blob = null;
     try {
         await progress.phase("pack.exportScanning");
-        const preview = await postJson("/minimax/director/export_pack", {
+        const preview = await postJson("/videodirector/export_pack", {
             timeline,
             widgets,
             dryRun: true,
@@ -254,7 +254,7 @@ export async function exportDirectorPack(editor) {
             progress.show();
         }
         await progress.phase("pack.exportPacking");
-        const resp = await api.fetchApi("/minimax/director/export_pack", {
+        const resp = await api.fetchApi("/videodirector/export_pack", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ timeline, widgets }),
@@ -311,7 +311,7 @@ export async function importDirectorPack(editor) {
         } else {
             const uploaded = await uploadZipChunked(file, (ratio) => progress.upload(ratio));
             await progress.phase("pack.importProcessing");
-            data = await postJson("/minimax/director/import_pack", {
+            data = await postJson("/videodirector/import_pack", {
                 filename: uploaded.name || uploaded.filename,
                 subfolder: uploaded.subfolder || "",
                 type: uploaded.type || "input",
@@ -339,7 +339,7 @@ export function bindPackActions(editor) {
             try {
                 await fn();
             } catch (err) {
-                console.error("[MiniMax H3 Director] pack:", err);
+                console.error("[VideoDirector] pack:", err);
                 await packAlert(editor, String(err?.message || err), t("pack.failedTitle"));
             }
         };

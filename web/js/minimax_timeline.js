@@ -1503,7 +1503,7 @@ async function uploadVideoChunked(file, onProgress) {
         body.append("total_chunks", String(totalChunks));
         body.append("filename", filename);
         body.append("chunk", file.slice(start, end), `${filename}.part`);
-        const resp = await api.fetchApi("/minimax/director/upload_chunk", { method: "POST", body });
+        const resp = await api.fetchApi("/videodirector/upload_chunk", { method: "POST", body });
         if (!resp.ok) {
             const text = await resp.text();
             throw new Error(text || t("upload.chunkFailed", { status: resp.status }));
@@ -1889,7 +1889,7 @@ function initDirectorEditor(node) {
         scheduleDirectorLayoutSettle(editor);
         return editor;
     } catch (err) {
-        console.error("[MiniMax H3Director] UI init failed:", err);
+        console.error("[VideoDirector] UI init failed:", err);
         return node._minimaxEditor || null;
     } finally {
         node._minimaxEditorMounting = false;
@@ -5426,7 +5426,7 @@ class MiniMaxH3DirectorEditor {
             this.renderRefVideoSlot();
             this.commit(false, { syncTimeline: true });
         } catch (err) {
-            console.error("[MiniMax H3Director] reference video load failed:", err);
+            console.error("[VideoDirector] reference video load failed:", err);
             if (nameEl) nameEl.textContent = t("upload.refVideoFailed", { err: formatUploadError(err) });
             this.renderRefVideoSlot();
         }
@@ -5472,7 +5472,7 @@ class MiniMaxH3DirectorEditor {
             this.renderRefVideoSlot();
             this.commit(false, { syncTimeline: true });
         } catch (err) {
-            console.error("[MiniMax H3Director] reference video load failed:", err);
+            console.error("[VideoDirector] reference video load failed:", err);
             if (nameEl) nameEl.textContent = t("upload.refVideoFailed", { err: formatUploadError(err) });
             this.renderRefVideoSlot();
         }
@@ -5501,7 +5501,7 @@ class MiniMaxH3DirectorEditor {
                 }
                 this.commit();
             } catch (err) {
-                console.error("[MiniMax H3Director] gen image upload failed:", err);
+                console.error("[VideoDirector] gen image upload failed:", err);
             }
         };
         input.click();
@@ -7842,7 +7842,7 @@ class MiniMaxH3DirectorEditor {
                     statusPrefix: t("parse.prefix"),
                 });
             } catch (err) {
-                console.error("[MiniMax H3Director] video load failed:", err);
+                console.error("[VideoDirector] video load failed:", err);
                 this.videoNameEl.textContent = t("upload.loadFailed", { err: formatUploadError(err) });
                 this.updateVideoNameLabel();
                 this._flushPendingThumbDrops();
@@ -7853,7 +7853,7 @@ class MiniMaxH3DirectorEditor {
                 }
             }
         } catch (err) {
-            console.error("[MiniMax H3Director] video pick failed:", err);
+            console.error("[VideoDirector] video pick failed:", err);
         }
     }
 
@@ -7892,7 +7892,7 @@ class MiniMaxH3DirectorEditor {
                 statusPrefix: t("parse.prefix"),
             });
         } catch (err) {
-            console.error("[MiniMax H3Director] append video failed:", err);
+            console.error("[VideoDirector] append video failed:", err);
             this.videoNameEl.textContent = t("upload.appendFailed", { err: formatUploadError(err) });
             this.updateVideoNameLabel();
         } finally {
@@ -7924,7 +7924,7 @@ class MiniMaxH3DirectorEditor {
                 statusPrefix: t("parse.prefix"),
             });
         } catch (err) {
-            console.error("[MiniMax H3Director] video load failed:", err);
+            console.error("[VideoDirector] video load failed:", err);
             this.videoNameEl.textContent = t("upload.loadFailed", { err: formatUploadError(err) });
             this.updateVideoNameLabel();
             this._flushPendingThumbDrops();
@@ -8074,7 +8074,7 @@ class MiniMaxH3DirectorEditor {
     }
 
     async listInputMedia(kind) {
-        const resp = await api.fetchApi(`/minimax/director/list_input_media?kind=${encodeURIComponent(kind)}`);
+        const resp = await api.fetchApi(`/videodirector/list_input_media?kind=${encodeURIComponent(kind)}`);
         if (!resp.ok) {
             const text = (await resp.text()).trim();
             if (resp.status === 404) throw new Error(t("mediaPicker.needRestart"));
@@ -8783,7 +8783,7 @@ class MiniMaxH3DirectorEditor {
         try {
             serverProbe = await this.probeVideoFile(relPath, subfolder, type);
         } catch (err) {
-            console.warn("[MiniMax H3Director] video probe failed, using browser estimate:", err);
+            console.warn("[VideoDirector] video probe failed, using browser estimate:", err);
         }
         const browserMeta = await this.probeVideoMetadata(viewUrl);
         const nativeFps = Number(serverProbe?.native_fps || 0);
@@ -8815,7 +8815,7 @@ class MiniMaxH3DirectorEditor {
     }
 
     async probeVideoFile(relPath, subfolder = "", type = "input") {
-        const resp = await api.fetchApi("/minimax/director/probe_video", {
+        const resp = await api.fetchApi("/videodirector/probe_video", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ videoFile: relPath, subfolder, type: type || "input" }),
@@ -10037,7 +10037,7 @@ class MiniMaxH3DirectorEditor {
                 logicalEnd: r.end,
                 nativeFps: r.clip.nativeFps || r.clip.native_fps || null,
             }));
-            const resp = await api.fetchApi("/minimax/director/detect_shots", {
+            const resp = await api.fetchApi("/videodirector/detect_shots", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -10079,7 +10079,7 @@ class MiniMaxH3DirectorEditor {
                 { ok: !warn },
             );
         } catch (err) {
-            console.error("[MiniMax H3 Director] smartSplit failed", err);
+            console.error("[VideoDirector] smartSplit failed", err);
             this.setSmartSplitMessage(t("smartSplit.failed", { err: err?.message || err }));
         } finally {
             if (btn) {
@@ -11692,7 +11692,7 @@ class MiniMaxH3DirectorEditor {
             this.commit();
             this.renderRefAudioSlots();
         } catch (err) {
-            console.error("[MiniMax H3Director] ref audio upload failed:", err);
+            console.error("[VideoDirector] ref audio upload failed:", err);
             alert(t("upload.refAudioFailed", { err: err?.message || err }));
         }
     }
@@ -11868,7 +11868,7 @@ class MiniMaxH3DirectorEditor {
             this.commit();
             this.renderR2vCommonVideoSlots();
         } catch (err) {
-            console.error("[MiniMax H3Director] common ref video pick failed:", err);
+            console.error("[VideoDirector] common ref video pick failed:", err);
             alert(t("upload.refVideoBatchFailed", { err: err?.message || err }));
         }
     }
@@ -11903,7 +11903,7 @@ class MiniMaxH3DirectorEditor {
             this.commit();
             this.renderR2vCommonVideoSlots();
         } catch (err) {
-            console.error("[MiniMax H3Director] common ref video upload failed:", err);
+            console.error("[VideoDirector] common ref video upload failed:", err);
             alert(t("upload.refVideoBatchFailed", { err: err?.message || err }));
         }
     }
@@ -11969,7 +11969,7 @@ class MiniMaxH3DirectorEditor {
                 isGlobal,
             );
         } catch (err) {
-            console.error("[MiniMax H3Director] ref pick failed:", err);
+            console.error("[VideoDirector] ref pick failed:", err);
         }
     }
 
@@ -12012,7 +12012,7 @@ class MiniMaxH3DirectorEditor {
             this.commit();
             this.renderRefAudioSlots();
         } catch (err) {
-            console.error("[MiniMax H3Director] ref audio pick failed:", err);
+            console.error("[VideoDirector] ref audio pick failed:", err);
             alert(t("upload.refAudioFailed", { err: err?.message || err }));
         }
     }
@@ -12039,7 +12039,7 @@ class MiniMaxH3DirectorEditor {
             }
             this.commit();
         } catch (err) {
-            console.error("[MiniMax H3Director] ref upload failed:", err);
+            console.error("[VideoDirector] ref upload failed:", err);
         }
     }
 
@@ -12373,7 +12373,7 @@ class MiniMaxH3DirectorEditor {
         this.runPhaseEl.style.width = `${phasePct}%`;
         // Do NOT syncDirectorNodeSize / full batch rebuild every tick — that was the
         // cross-mode (t2v/i2v/r2v/…) infinite-height feedback loop. Status has a fixed
-        // min-height; live previews patch in place via minimax_director_preview.
+        // min-height; live previews patch in place via videodirector_preview.
         const segKey = `${timelineSeg}|${detail.phase}|${runSeg}`;
         const segChanged = this._runProgressSegKey !== segKey;
         this._runProgressSegKey = segKey;
@@ -12627,10 +12627,10 @@ function findDirectorNode(nodeId) {
 }
 
 const EXTERNAL_GROUP_NODE_TYPES = new Set([
-    "MiniMaxH3DirectorGroupImageToVideo",
-    "MiniMaxH3DirectorGroupReferenceToVideo",
+    "VDGroupImageToVideo",
+    "VDGroupReferenceToVideo",
 ]);
-const EXTERNAL_COMBINE_NODE_TYPE = "MiniMaxH3DirectorGroupsCombine";
+const EXTERNAL_COMBINE_NODE_TYPE = "VDGroupsCombine";
 
 function graphLinkRecord(graph, linkId) {
     if (linkId == null || !graph) return null;
@@ -13005,7 +13005,7 @@ function readExternalGroupSpec(node, graph = null) {
     let refImages = [];
     let refVideos = [];
     let refAudios = [];
-    if (cls === "MiniMaxH3DirectorGroupReferenceToVideo") {
+    if (cls === "VDGroupReferenceToVideo") {
         // Autogrow: ref_images.ref_image_0 / ref_videos.ref_video_0 / …
         refImages = collectAutogrowSlotRefs(
             g, node, "ref_image", resolveLinkedImageFile,
@@ -13263,12 +13263,12 @@ function clearAllDirectorRunStatus() {
 /** Old workflows may still list removed output slots (e.g. segment_images). */
 function isMiniMaxH3DirectorNode(node) {
     const cls = node?.comfyClass || node?.type || "";
-    return cls === "MiniMaxH3Director" || cls === "ComfyMiniMaxH3Director";
+    return cls === "VD";
 }
 
 function isDirectorNodeDef(nodeType, nodeData) {
     const cls = nodeType?.comfyClass || nodeData?.name || "";
-    return cls === "MiniMaxH3Director" || cls === "ComfyMiniMaxH3Director";
+    return cls === "VD";
 }
 
 function stripDeprecatedDirectorOutputs(node) {
@@ -13321,7 +13321,7 @@ function normalizeDirectorOutputs(node) {
 }
 
 app.registerExtension({
-    name: "ComfyUI.MiniMaxH3DirectorPlugin",
+    name: "ComfyUI.VideoDirectorPlugin",
     async setup() {
         installDirectorClipboardGuard();
         const flushDirectors = () => {
@@ -13340,11 +13340,11 @@ app.registerExtension({
             app.queuePrompt._minimaxPatched = true;
         }
 
-        api.addEventListener("minimax_director_progress", ({ detail }) => {
+        api.addEventListener("videodirector_progress", ({ detail }) => {
             findDirectorNode(detail?.node_id)?._minimaxEditor?.setRunProgress?.(detail);
         });
 
-        api.addEventListener("minimax_director_preview", ({ detail }) => {
+        api.addEventListener("videodirector_preview", ({ detail }) => {
             const editor = findDirectorNode(detail?.node_id)?._minimaxEditor;
             if (!editor) return;
             if (editor.isImageBatch?.()) {

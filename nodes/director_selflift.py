@@ -1,4 +1,4 @@
-"""Graph packer: SelfLift (progressive first-pass) for MiniMax H3 Director.selflift."""
+"""Graph packer: SelfLift (progressive first-pass) for VideoDirector.selflift."""
 
 from __future__ import annotations
 

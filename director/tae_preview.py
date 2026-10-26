@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 from PIL import Image, ImageOps
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.tae_preview")
+log = logging.getLogger("ComfyUI-VideoDirector.tae_preview")
 
 _DEFAULT_TAE_NAME = "taeh3.safetensors"
 _lock = threading.Lock()

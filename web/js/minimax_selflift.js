@@ -1,9 +1,9 @@
-/** MiniMax H3 Director SelfLift — split-mode widget visibility + cache witness. */
+/** VideoDirector SelfLift — split-mode widget visibility + cache witness. */
 
 import { app } from "../../scripts/app.js";
 
-const SELFLIFT_CLASS = "MiniMaxH3DirectorSelfLift";
-const DIRECTOR_CLASSES = new Set(["MiniMaxH3Director", "ComfyMiniMaxH3Director"]);
+const SELFLIFT_CLASS = "VDSelfLift";
+const DIRECTOR_CLASSES = new Set(["VD"]);
 const BYPASS_MODES = new Set([2, 4]);
 
 function isSelfLiftNode(node) {
@@ -417,7 +417,7 @@ function refreshLinkedDirectorCache(delay = 120) {
 }
 
 app.registerExtension({
-    name: "minimax.h3.director.selflift",
+    name: "ComfyUI.VideoDirectorSelfLift",
     async beforeRegisterNodeDef(nodeType, nodeData) {
         if (nodeData?.name !== SELFLIFT_CLASS) return;
         const onNodeCreated = nodeType.prototype.onNodeCreated;

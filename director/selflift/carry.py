@@ -18,7 +18,7 @@ from ..h3_motion_context import (
     video_from_latent,
 )
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.selflift.carry")
+log = logging.getLogger("ComfyUI-VideoDirector.selflift.carry")
 
 
 def prefix_steps_from_pin_frames(n_frames: int) -> int:

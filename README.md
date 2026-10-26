@@ -1,14 +1,14 @@
-# ComfyUI MiniMax H3 Director
+# ComfyUI VideoDirector
 
 基于 **ComfyUI 官方 MiniMax-H3** 的多段音视频导演台插件。仓库地址：[AIMixer/ComfyUI_MiniMaxH3_Director](https://github.com/AIMixer/ComfyUI_MiniMaxH3_Director)
 
 **English** → [README_EN.md](README_EN.md)
 
-![MiniMaxH3Director 工作流截图](docs/screenshot.png)
+![VideoDirector 工作流截图](docs/screenshot.png)
 
 ## 功能介绍
 
-**MiniMaxH3Director** 是面向长视频、多段生成的 MiniMax H3 导演台节点，把分段计划、条件编码、采样解码和导出整合在一个节点里。底层走官方 `MiniMaxH3ImageToVideo` / `MiniMaxH3ReferenceToVideo` + `MiniMaxH3SigmaShift` + `KSampler` + AV 分离解码链路，原生输出立体声音频。
+**VideoDirector** 是面向长视频、多段生成的 MiniMax H3 导演台节点，把分段计划、条件编码、采样解码和导出整合在一个节点里。底层走官方 `MiniMaxH3ImageToVideo` / `MiniMaxH3ReferenceToVideo` + `MiniMaxH3SigmaShift` + `KSampler` + AV 分离解码链路，原生输出立体声音频。
 
 ### 核心能力
 
@@ -23,9 +23,9 @@
 | **外部多组接线** | `Director Group (Image to Video)` / `(Reference to Video)` + `Groups Combine`；连入导演台 `i2v_groups` / `r2v_groups` 后外部优先覆盖 UI 素材，仍支持跑批与选择运行 |
 | **原生立体声音频** | 与画面同次采样生成；`v2v`/`rv2v` 可选生成声音 / 使用原声 / 静音 |
 | **段间引导** | 默认关闭；多段 `t2v` / `i2v` / `fl2v` / `r2v` / `v2v` / `rv2v` 时可开启，将上一段生成结果的末尾运动（及生成音频）钉入下一段采样再裁掉前缀。上下文帧数：5 / 22 / 39 / 56，**默认推荐为 22**。**感谢 [ComfyUI-H3-Motion-Context](https://github.com/NikoDemon80/ComfyUI-H3-Motion-Context) 提供的实现思路** |
-| **语义桥 (Semantic Bridge)** | 外接 **MiniMax H3 Director Semantic Bridge** 到导演台 `selflift` 上方的 `semantic_bridge` 口。未接线 = 完全相同。接线后用 student MLP 改写官方 cond token（RMS-norm → 残差混合）。权重自行放到 `models/semantic_bridge/`，本插件不分发；节点里换 adapter 即可在原版与 BUNNY 之间切换，不要串两座桥。原版偏构图/空间/计数等静态关系；BUNNY 偏动作归属与复杂多人。蒸馏于 FL2VA；`r2v` / `v2v` / `rv2v` 为强制兼容，请谨慎使用。参考 [speach1sdef178/MiniMax-H3-Semantic-Bridge](https://huggingface.co/speach1sdef178/MiniMax-H3-Semantic-Bridge)、[JOKER141/BUNNY_H3_Conditioning_Bridge](https://huggingface.co/JOKER141/BUNNY_H3_Conditioning_Bridge) |
-| **渐进一采 (SelfLift)** | 外接 **MiniMax H3 Director SelfLift** 到导演台 `selflift` 口（Refine 上方）。未接线 = 原来的单阶段一采。接线后一采变为低清前缀 + 3D lift + 高清收尾，画布仍是导演台分辨率。Euler。**感谢 [slmonker/selflift-Avatar](https://github.com/slmonker/selflift-Avatar) 提供的实现思路** |
-| **二采 / 放大 (Refine)** | 外接 **MiniMax H3 Director Refine** 到导演台 `refine` 口。未接线 = 原来的单次采样。`refine` = 同分辨率精修；`upscale` = 先放大到目标画布再按 SIGMAS 二采（像素插值 / RTX VSR / H3 latent）；`latent_upscale` = 只放大 H3 latent、不二采。`passes` 可多次精修（upscale 只放大一次）。可选接 `refine_model` 换二采 UNET。`images` 为二采后成片，`images_pre_refine` 为一采（放大前）画面 |
+| **语义桥 (Semantic Bridge)** | 外接 **VideoDirector Semantic Bridge** 到导演台 `selflift` 上方的 `semantic_bridge` 口。未接线 = 完全相同。接线后用 student MLP 改写官方 cond token（RMS-norm → 残差混合）。权重自行放到 `models/semantic_bridge/`，本插件不分发；节点里换 adapter 即可在原版与 BUNNY 之间切换，不要串两座桥。原版偏构图/空间/计数等静态关系；BUNNY 偏动作归属与复杂多人。蒸馏于 FL2VA；`r2v` / `v2v` / `rv2v` 为强制兼容，请谨慎使用。参考 [speach1sdef178/MiniMax-H3-Semantic-Bridge](https://huggingface.co/speach1sdef178/MiniMax-H3-Semantic-Bridge)、[JOKER141/BUNNY_H3_Conditioning_Bridge](https://huggingface.co/JOKER141/BUNNY_H3_Conditioning_Bridge) |
+| **渐进一采 (SelfLift)** | 外接 **VideoDirector SelfLift** 到导演台 `selflift` 口（Refine 上方）。未接线 = 原来的单阶段一采。接线后一采变为低清前缀 + 3D lift + 高清收尾，画布仍是导演台分辨率。Euler。**感谢 [slmonker/selflift-Avatar](https://github.com/slmonker/selflift-Avatar) 提供的实现思路** |
+| **二采 / 放大 (Refine)** | 外接 **VideoDirector Refine** 到导演台 `refine` 口。未接线 = 原来的单次采样。`refine` = 同分辨率精修；`upscale` = 先放大到目标画布再按 SIGMAS 二采（像素插值 / RTX VSR / H3 latent）；`latent_upscale` = 只放大 H3 latent、不二采。`passes` 可多次精修（upscale 只放大一次）。可选接 `refine_model` 换二采 UNET。`images` 为二采后成片，`images_pre_refine` 为一采（放大前）画面 |
 | **运行报告** | `report` 口输出分段计划、每段任务摘要 |
 | **导演包导入导出** | 工具栏「导入/导出导演包」：zip 内保存时间轴 JSON 与参考图/视频/音频。目录名为英文（`shared_params/`、`asset_groups/01/`、`Picture1`…），与切到 EN 后的界面用语对应，避免路径编码问题 |
 
@@ -34,10 +34,10 @@
 ### 输入 / 输出
 
 **输入：** `model` → `video_vae` → `audio_vae` → `clip`  
-**可选：** `i2v_groups`（Image to Video 多组）/ `r2v_groups`（Reference to Video 多组）/ `semantic_bridge`（`MiniMax H3 Director Semantic Bridge`）/ `selflift`（`MiniMax H3 Director SelfLift`）/ `refine`（`MiniMax H3 Director Refine`）
+**可选：** `i2v_groups`（Image to Video 多组）/ `r2v_groups`（Reference to Video 多组）/ `semantic_bridge`（`VideoDirector Semantic Bridge`）/ `selflift`（`VideoDirector SelfLift`）/ `refine`（`VideoDirector Refine`）
 
 > **缓存文件夹名（`cache_name`，面板「性能」组最下方）**：分段缓存的目录名。
-> 填了就落到 `output/minimax_seg_cache/<名字>_<节点id>/`，**留空则只有节点 id**（旧行为不变）。
+> 填了就落到 `output/videodirector_seg_cache/<名字>_<节点id>/`，**留空则只有节点 id**（旧行为不变）。
 > 同一个名字配上不同节点 id 会分开。复制工作流后节点 id 通常还是原来的，名字也相同就会继续共用一个目录，要隔开就改名字。
 > 名字会自动过滤 `/ \ : * ? " < > |` 与 Windows 保留名（`CON`/`NUL`…），最长 64 字符。
 
@@ -74,7 +74,7 @@ timeline.json
 - `timeline.json`：导演台导出时写入，用于无损往返（含其它任务草稿等）。
 - 转换工具可以只写 `pack.json` + `shared_params/` + `asset_groups/`，不必手写 `timeline.json`。
 - 槽位编号与界面相同：公共参数占用 Picture 1–3 时，组文件夹里从 `Picture4` 续编，不要在组内把第一张改名为 `Picture1`。
-- 不含 UNET / CLIP / VAE。导入会覆盖当前节点时间轴（有确认）。媒体落到 ComfyUI `input/minimax_director_packs/`。
+- 不含 UNET / CLIP / VAE。导入会覆盖当前节点时间轴（有确认）。媒体落到 ComfyUI `input/videodirector_packs/`。
 
 ## 依赖
 
@@ -177,7 +177,7 @@ pip install -r ComfyUI_MiniMaxH3_Director/requirements.txt
 
 ### 二采 / 放大 Refine 用法摘要
 
-1. 添加 **MiniMax H3 Director Refine**，把 `refine` 接到导演台 `refine` 口。不接则仍是原来的一采
+1. 添加 **VideoDirector Refine**，把 `refine` 接到导演台 `refine` 口。不接则仍是原来的一采
 2. `mode=refine`：同分辨率再采一遍（精修）。`mode=upscale`：先放大到目标画布再二采。`mode=latent_upscale`：只放大 H3 视频 latent，不再二采。分辨率控件在 `upscale` / `latent_upscale` 时显示（可跟随导演台、按比例+百万像素，或自定义宽高）。导演台是一采分辨率，Refine 目标才是放大后的宽高
 3. `passes`：精修次数，默认 1、最多 9999。`upscale` 只在第 1 次放大，后面都是同分辨率精修；`latent_upscale` 不二采
 4. 可选接 `refine_model`（二采 UNET）；不接则用导演台主模型。适合一采挂 Turbo LoRA、二采卸掉或换另一套
@@ -193,7 +193,7 @@ pip install -r ComfyUI_MiniMaxH3_Director/requirements.txt
 
 对齐官网两个 conditioning 节点，把扩写 / 抠图 / Load Video 等处理结果以**多组**形式送进导演台：
 
-1. 添加 **`MiniMax H3 Director Group (Image to Video)`** 或 **`(Reference to Video)`**
+1. 添加 **`VideoDirector Group (Image to Video)`** 或 **`(Reference to Video)`**
 2. 按组接线：`prompt` / `duration_sec`；I2V 系接 `first_frame` / `last_frame`（无帧=t2v，仅首=i2v，仅尾或首+尾=fl2v）；R2V 为 Autogrow（同官方 Reference to Video）：接图/视频/音频会自动多出空口（图≤9、视频≤3、音频≤3）。输出宽高在**导演台**统一设置
 3. 多组：用 **`Director Groups Combine`**（Autogrow：接满最后一个口会自动多出新口，同官方 Reference to Video）→ 导演台 `i2v_groups` / `r2v_groups`；单组可直接把 `group` 连到导演台
 4. 导演台 `task_type` 与口一致（t2v/i2v/fl2v ↔ `i2v_groups`；r2v ↔ `r2v_groups`）；**不要两口同时连接**

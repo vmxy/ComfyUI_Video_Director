@@ -22,7 +22,7 @@ import struct
 import folder_paths
 from aiohttp import web
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.lora_previews")
+log = logging.getLogger("ComfyUI-VideoDirector.lora_previews")
 
 IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".gif")
 VIDEO_EXTS = (".mp4", ".webm")
@@ -213,7 +213,7 @@ async def minimax_lora_previews(request):
         previews = {name: info["preview"] for name, info in catalog.items() if info.get("preview")}
         return web.json_response({"previews": previews, "catalog": catalog})
     except Exception as exc:
-        log.warning("MiniMax H3 Director LoRA catalog failed: %s", exc)
+        log.warning("VideoDirector LoRA catalog failed: %s", exc)
         return web.json_response({"previews": {}, "catalog": {}, "error": str(exc)}, status=500)
 
 

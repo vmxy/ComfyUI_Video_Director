@@ -1,4 +1,4 @@
-"""Graph packer: face-refine config for MiniMax H3 Director.face_refine."""
+"""Graph packer: face-refine config for VideoDirector.face_refine."""
 
 from __future__ import annotations
 

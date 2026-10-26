@@ -1,7 +1,7 @@
 """Incremental per-segment MP4 export for「分段导出」runs.
 
 Best-effort: encode failures must never abort generation. Each run uses a
-timestamp folder: ``output/minimax_seg_export/<YYYYMMDD_HHMMSS>/``.
+timestamp folder: ``output/videodirector_seg_export/<YYYYMMDD_HHMMSS>/``.
 
 Files:
   ``seg_XXXX.mp4`` — final clip (last refine pass / no Refine; FaceRefine stitch if wired)
@@ -25,20 +25,20 @@ import torch
 from .audio_export import prepare_segment_audio_for_file_export
 from .plan import DirectorPlan, SegmentPlan
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.mp4_export")
+log = logging.getLogger("ComfyUI-VideoDirector.director.mp4_export")
 
 VIDEO_EXPORT_TASKS = frozenset({"t2v", "i2v", "r2v", "fl2v", "v2v", "rv2v"})
 
 
 def new_segment_mp4_run_dir(plan: DirectorPlan) -> Path | None:
-    """Create ``minimax_seg_export/<YYYYMMDD_HHMMSS>/`` for one Director execute.
+    """Create ``videodirector_seg_export/<YYYYMMDD_HHMMSS>/`` for one Director execute.
 
     Returns None when not in segments mode or the output dir is unavailable.
     """
     if getattr(plan, "export_mode", "all") != "segments":
         return None
     try:
-        base = Path(folder_paths.get_output_directory()) / "minimax_seg_export"
+        base = Path(folder_paths.get_output_directory()) / "videodirector_seg_export"
         base.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         root = base / stamp
@@ -50,7 +50,7 @@ def new_segment_mp4_run_dir(plan: DirectorPlan) -> Path | None:
                     root = candidate
                     break
         root.mkdir(parents=True, exist_ok=False)
-        log.info("MiniMax H3 Director segment mp4 run dir: %s", root)
+        log.info("VideoDirector segment mp4 run dir: %s", root)
         return root
     except OSError as exc:
         log.warning("Segment mp4 export dir unavailable (%s); skipped.", exc)
@@ -140,7 +140,7 @@ def maybe_export_segment_mp4(
             audio=audio,
         )
         log.info(
-            "MiniMax H3 Director segment #%d %smp4 saved: %s",
+            "VideoDirector segment #%d %smp4 saved: %s",
             int(seg.index) + 1,
             _suffix_log_label(suffix),
             path,
@@ -208,7 +208,7 @@ def copy_segment_mp4_suffix(
             return None
         shutil.copy2(src, dest)
         log.info(
-            "MiniMax H3 Director segment #%d copied %s → %s",
+            "VideoDirector segment #%d copied %s → %s",
             int(seg.index) + 1,
             src.name,
             dest.name,

@@ -21,7 +21,7 @@ import torch
 from ..lib.image_prep import assert_minimax_canvas, fit_canvas, fit_video_long_edge, resolve_output_dimensions
 from ..lib.task_prompts import resolve_task_key, task_type_option_label, TASK_PROMPT_BY_KEY
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.fl2v")
+log = logging.getLogger("ComfyUI-VideoDirector.director.fl2v")
 
 MIN_FL2V_FRAMES = 5
 DEFAULT_FL2V_FRAMES = 124
@@ -559,7 +559,7 @@ def build_fl2v_director_plan(
     if run_sel is not None:
         if not any(int(s["source_index"]) in run_sel for s in shots):
             raise ValueError(
-                "MiniMax H3 Director: 「选择运行」已开启，但未勾选任何首尾帧组。"
+                "VideoDirector: 「选择运行」已开启，但未勾选任何首尾帧组。"
                 "请勾选至少一组再执行。"
             )
 
@@ -704,7 +704,7 @@ def build_fl2v_director_plan(
         )
     if run_sel is not None and not selected_plan_indices:
         raise ValueError(
-            "MiniMax H3 Director: 「选择运行」已开启，但未勾选任何首尾帧组。"
+            "VideoDirector: 「选择运行」已开启，但未勾选任何首尾帧组。"
             "请勾选至少一组再执行。"
         )
 

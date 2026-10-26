@@ -1,4 +1,4 @@
-"""Disk cache for MiniMax H3 Director segment decode outputs (partial re-run + merge).
+"""Disk cache for VideoDirector segment decode outputs (partial re-run + merge).
 
 Frame payloads are stored losslessly as FFV1 (``seg_XXXX.frames.mkv`` /
 ``seg_XXXX.pre.frames.mkv``) via :mod:`..lib.frames_ffv1`. Payloads written by
@@ -29,7 +29,7 @@ from .h3_latent_continue import CONTINUE_PIPELINE_ID, clamp_seam_min_mask
 from .h3_motion_context import CONTINUITY_PIPELINE_ID, trim_context_prefix, trim_export_tail
 from .plan import DirectorPlan, SegmentPlan, resolve_ref_image_size
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.cache")
+log = logging.getLogger("ComfyUI-VideoDirector.director.cache")
 
 SOURCE_VIDEO_FP_KEY = "source_video"
 
@@ -139,7 +139,7 @@ def _reject_source_stale(
     return True
 
 
-CACHE_ROOT_DIRNAME = "minimax_seg_cache"
+CACHE_ROOT_DIRNAME = "videodirector_seg_cache"
 MAX_CACHE_NAME_LEN = 64
 
 # Characters Windows forbids in a path segment, plus control chars.

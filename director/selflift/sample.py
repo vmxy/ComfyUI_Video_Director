@@ -22,7 +22,7 @@ from .grid import is_same_canvas, lowres_canvas, pixel_to_latent_hw
 from .lift import lift_video_tensor, mix_rho, pixel_anchor_latent
 from .pack import require_euler, resolve_transition_k
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.selflift.sample")
+log = logging.getLogger("ComfyUI-VideoDirector.selflift.sample")
 
 PhaseCallback = Callable[[str, float], None]
 StepPreviewCallback = Callable[[int, int, Any], None]

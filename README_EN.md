@@ -1,15 +1,15 @@
-# ComfyUI MiniMax H3 Director
+# ComfyUI VideoDirector
 
 Multi-segment AV timeline director for **official ComfyUI MiniMax-H3**.  
 Repository: [AIMixer/ComfyUI_MiniMaxH3_Director](https://github.com/AIMixer/ComfyUI_MiniMaxH3_Director)
 
 **中文文档** → [README.md](README.md)
 
-![MiniMaxH3Director workflow screenshot](docs/screenshot.png)
+![VideoDirector workflow screenshot](docs/screenshot.png)
 
 ## Features
 
-**MiniMaxH3Director** is a single-node director for long-form, multi-segment MiniMax H3 audio–video generation — timeline planning, conditioning, sampling, AV decode, and export in one place. It wraps the official `MiniMaxH3ImageToVideo` / `MiniMaxH3ReferenceToVideo` + `MiniMaxH3SigmaShift` + `KSampler` pipeline with native stereo audio.
+**VideoDirector** is a single-node director for long-form, multi-segment MiniMax H3 audio–video generation — timeline planning, conditioning, sampling, AV decode, and export in one place. It wraps the official `MiniMaxH3ImageToVideo` / `MiniMaxH3ReferenceToVideo` + `MiniMaxH3SigmaShift` + `KSampler` pipeline with native stereo audio.
 
 ### Core capabilities
 
@@ -24,9 +24,9 @@ Repository: [AIMixer/ComfyUI_MiniMaxH3_Director](https://github.com/AIMixer/Comf
 | **External multi-group inputs** | `Director Group (Image to Video)` / `(Reference to Video)` + `Groups Combine`; wire into `i2v_groups` / `r2v_groups` for external-priority batches with run-select |
 | **Native stereo audio** | Generated with the picture; `v2v`/`rv2v` can generate / keep source / mute |
 | **Segment continuity** | Off by default. For multi-segment `t2v` / `i2v` / `fl2v` / `r2v` / `v2v` / `rv2v`, pin the previous generated tail (motion + generated audio) into the next sample, then trim the prefix. Context frames: 5 / 22 / 39 / 56 — **recommended default: 22**. **Thanks to [ComfyUI-H3-Motion-Context](https://github.com/NikoDemon80/ComfyUI-H3-Motion-Context) for the implementation approach** |
-| **Semantic Bridge** | Wire **MiniMax H3 Director Semantic Bridge** into Director `semantic_bridge` (above SelfLift). Unconnected = identical. Connected = rewrite official cond tokens with the student MLP (RMS-norm → residual mix). Put weights in `models/semantic_bridge/` yourself — this plugin does not ship them. Switch adapters in the node to pick original vs BUNNY; do not chain two bridges. Original leans static relations (layout / space / counting); BUNNY leans action ownership and multi-character scenes. Distilled on FL2VA; `r2v` / `v2v` / `rv2v` is forced-compat — use with care. See [speach1sdef178/MiniMax-H3-Semantic-Bridge](https://huggingface.co/speach1sdef178/MiniMax-H3-Semantic-Bridge) and [JOKER141/BUNNY_H3_Conditioning_Bridge](https://huggingface.co/JOKER141/BUNNY_H3_Conditioning_Bridge) |
-| **SelfLift (progressive first pass)** | Wire **MiniMax H3 Director SelfLift** into Director `selflift` (above Refine). Unconnected = original single-stage first pass. Connected = low-res prefix + 3D lift + high-res tail on the Director canvas. Euler only. **Thanks to [slmonker/selflift-Avatar](https://github.com/slmonker/selflift-Avatar) for the implementation approach** |
-| **Refine / upscale** | Wire **MiniMax H3 Director Refine** into Director `refine`. Unconnected = original single-pass sampling. `refine` = same-resolution second sample; `upscale` = enlarge to a target canvas then SIGMAS sample (pixel / RTX VSR / H3 latent); `latent_upscale` = H3 latent enlarge only, no second sample. `passes` repeats refine (upscale once). Optional `refine_model` swaps the second-pass UNET. `images` is the refined clip; `images_pre_refine` is the first pass (before upscale) |
+| **Semantic Bridge** | Wire **VideoDirector Semantic Bridge** into Director `semantic_bridge` (above SelfLift). Unconnected = identical. Connected = rewrite official cond tokens with the student MLP (RMS-norm → residual mix). Put weights in `models/semantic_bridge/` yourself — this plugin does not ship them. Switch adapters in the node to pick original vs BUNNY; do not chain two bridges. Original leans static relations (layout / space / counting); BUNNY leans action ownership and multi-character scenes. Distilled on FL2VA; `r2v` / `v2v` / `rv2v` is forced-compat — use with care. See [speach1sdef178/MiniMax-H3-Semantic-Bridge](https://huggingface.co/speach1sdef178/MiniMax-H3-Semantic-Bridge) and [JOKER141/BUNNY_H3_Conditioning_Bridge](https://huggingface.co/JOKER141/BUNNY_H3_Conditioning_Bridge) |
+| **SelfLift (progressive first pass)** | Wire **VideoDirector SelfLift** into Director `selflift` (above Refine). Unconnected = original single-stage first pass. Connected = low-res prefix + 3D lift + high-res tail on the Director canvas. Euler only. **Thanks to [slmonker/selflift-Avatar](https://github.com/slmonker/selflift-Avatar) for the implementation approach** |
+| **Refine / upscale** | Wire **VideoDirector Refine** into Director `refine`. Unconnected = original single-pass sampling. `refine` = same-resolution second sample; `upscale` = enlarge to a target canvas then SIGMAS sample (pixel / RTX VSR / H3 latent); `latent_upscale` = H3 latent enlarge only, no second sample. `passes` repeats refine (upscale once). Optional `refine_model` swaps the second-pass UNET. `images` is the refined clip; `images_pre_refine` is the first pass (before upscale) |
 | **Run report** | `report` output with plan and per-segment summary |
 | **Director pack I/O** | Toolbar **Import pack / Export pack**: zip of timeline JSON plus reference images/videos/audio. ASCII folders (`shared_params/`, `asset_groups/01/`, `Picture1`…) match the English UI and avoid path-encoding issues |
 
@@ -35,7 +35,7 @@ Reference-audio slots can select an existing video or a local audio/video file. 
 ### Inputs / outputs
 
 **Inputs:** `model` → `video_vae` → `audio_vae` → `clip`  
-**Optional:** `i2v_groups` (Image to Video packs) / `r2v_groups` (Reference to Video packs) / `semantic_bridge` (`MiniMax H3 Director Semantic Bridge`) / `selflift` (`MiniMax H3 Director SelfLift`) / `refine` (`MiniMax H3 Director Refine`)
+**Optional:** `i2v_groups` (Image to Video packs) / `r2v_groups` (Reference to Video packs) / `semantic_bridge` (`VideoDirector Semantic Bridge`) / `selflift` (`VideoDirector SelfLift`) / `refine` (`VideoDirector Refine`)
 
 **Outputs:** `images` → `audio` → `fps` → `frame_count` → `source_images` → `report` → `images_pre_refine`
 
@@ -70,7 +70,7 @@ timeline.json
 - `timeline.json` is written on Director export for lossless round-trip (including other-task drafts).
 - A converter may write only `pack.json` + `shared_params/` + `asset_groups/` and omit `timeline.json`.
 - Slot numbers match the UI: if Shared params occupy Picture 1–3, group folders continue from `Picture4` — do not rename the group’s first image to `Picture1`.
-- Models (UNET / CLIP / VAE) are not included. Import replaces the current node timeline (with confirmation). Media is copied to ComfyUI `input/minimax_director_packs/`.
+- Models (UNET / CLIP / VAE) are not included. Import replaces the current node timeline (with confirmation). Media is copied to ComfyUI `input/videodirector_packs/`.
 
 ## Requirements
 
@@ -173,7 +173,7 @@ This repo ships examples under `example_workflows/`:
 
 ### Refine / upscale — short guide
 
-1. Add **MiniMax H3 Director Refine** and wire `refine` into Director `refine`. Leave it unconnected for the original single pass
+1. Add **VideoDirector Refine** and wire `refine` into Director `refine`. Leave it unconnected for the original single pass
 2. `mode=refine`: same-resolution second sample. `mode=upscale`: enlarge to a target canvas then second-sample. `mode=latent_upscale`: enlarge H3 video latent only (no second sample). Resolution widgets appear for `upscale` / `latent_upscale` (follow Director, aspect + megapixels, or custom W×H). Director canvas is the first-pass size; Refine target is the enlarge size
 3. `passes`: refine rounds, default 1, max 9999. In `upscale` mode only the first round enlarges; later rounds stay on that canvas. `latent_upscale` does not sample
 4. Optional `refine_model` (second-pass UNET); unwired uses the Director model. Typical: Turbo LoRA on pass 1, a clean / other LoRA UNET on refine
@@ -189,7 +189,7 @@ Example: `example_workflows/minimax_h3_director_二采_加速.json`
 
 Mirror the two official conditioning nodes and feed **multi-group** batches into the Director:
 
-1. Add **`MiniMax H3 Director Group (Image to Video)`** or **`(Reference to Video)`**
+1. Add **`VideoDirector Group (Image to Video)`** or **`(Reference to Video)`**
 2. Wire per group: `prompt` / `duration_sec`; I2V family uses `first_frame` / `last_frame` (none=t2v, first only=i2v, last only or both=fl2v); R2V uses Autogrow slots (same as official Reference to Video: images ≤9, videos ≤3, audios ≤3). Output size is set on the **Director**
 3. Batch with **`Director Groups Combine`** (Autogrow slots, same UX as official Reference to Video) → Director `i2v_groups` / `r2v_groups`; a single `group` can connect to the Director directly
 4. Match `task_type` to the port (t2v/i2v/fl2v ↔ `i2v_groups`; r2v ↔ `r2v_groups`); do not connect both ports at once

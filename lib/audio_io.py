@@ -1,4 +1,4 @@
-"""Extract source audio aligned with MiniMax H3 Director timeline (v2v / rv2v).
+"""Extract source audio aligned with VideoDirector timeline (v2v / rv2v).
 
 Independent of video tensors (does not touch decode / 娈甸棿寮曞). Same frame
 selection as ``load_video_resampled``, with PCM-safe clocks:
@@ -38,7 +38,7 @@ from .video_io import (
     video_clips_from_timeline,
 )
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.audio")
+log = logging.getLogger("ComfyUI-VideoDirector.audio")
 
 _ENCODE_ARGS = ("utf-8", "backslashreplace")
 

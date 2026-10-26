@@ -7,7 +7,7 @@ import os
 import sys
 from typing import Any
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.shot_detect")
+log = logging.getLogger("ComfyUI-VideoDirector.shot_detect")
 
 MIN_SEG_FRAMES = 4
 

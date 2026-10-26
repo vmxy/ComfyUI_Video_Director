@@ -1,4 +1,4 @@
-"""HTTP routes for MiniMax H3 Director (chunked video upload)."""
+"""HTTP routes for VideoDirector (chunked video upload)."""
 
 from __future__ import annotations
 
@@ -15,10 +15,10 @@ import folder_paths
 from aiohttp import web
 from server import PromptServer
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director")
+log = logging.getLogger("ComfyUI-VideoDirector.director")
 
-CHUNK_ROOT = os.path.join(folder_paths.get_temp_directory(), "minimax_upload_chunks")
-REF_AUDIO_CHUNK_ROOT = os.path.join(folder_paths.get_temp_directory(), "minimax_ref_audio_chunks")
+CHUNK_ROOT = os.path.join(folder_paths.get_temp_directory(), "videodirector_upload_chunks")
+REF_AUDIO_CHUNK_ROOT = os.path.join(folder_paths.get_temp_directory(), "videodirector_ref_audio_chunks")
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tif", ".tiff"}
 VIDEO_EXTS = {".mp4", ".mov", ".webm", ".mkv", ".avi", ".m4v", ".mpg", ".mpeg", ".mts", ".ts"}
 AUDIO_EXTS = {".wav", ".mp3", ".flac", ".ogg", ".m4a", ".aac", ".wma"}
@@ -184,7 +184,7 @@ async def minimax_upload_video_chunk(request):
                 shutil.copyfileobj(src, out)
 
     shutil.rmtree(session_dir, ignore_errors=True)
-    log.info("MiniMax H3 Director uploaded video to input/: %s", filename)
+    log.info("VideoDirector uploaded video to input/: %s", filename)
     return web.json_response({"name": filename, "subfolder": "", "type": "input"})
 
 
@@ -313,7 +313,7 @@ async def minimax_extract_reference_audio(request):
         )
         return web.json_response(result)
     except Exception as exc:
-        log.warning("MiniMax H3 Director reference audio extraction failed: %s", exc)
+        log.warning("VideoDirector reference audio extraction failed: %s", exc)
         return web.Response(status=400, text=str(exc))
 
 
@@ -371,7 +371,7 @@ async def minimax_prepare_reference_audio_chunk(request):
             result = await asyncio.to_thread(_prepare_reference_audio, source_path, filename)
         return web.json_response(result)
     except Exception as exc:
-        log.warning("MiniMax H3 Director local reference audio preparation failed: %s", exc)
+        log.warning("VideoDirector local reference audio preparation failed: %s", exc)
         return web.Response(status=400, text=str(exc))
     finally:
         if session_dir:
@@ -402,7 +402,7 @@ async def minimax_probe_video(request):
     try:
         info = probe_video_clip(clip)
     except Exception as exc:
-        log.warning("MiniMax H3 Director video probe failed: %s", exc)
+        log.warning("VideoDirector video probe failed: %s", exc)
         return web.Response(status=400, text=str(exc))
     return web.json_response(info)
 
@@ -416,7 +416,7 @@ async def minimax_list_input_media(request):
     except ValueError as exc:
         return web.Response(status=400, text=str(exc))
     except Exception as exc:
-        log.warning("MiniMax H3 Director list input media failed: %s", exc)
+        log.warning("VideoDirector list input media failed: %s", exc)
         return web.Response(status=500, text=str(exc))
     return web.json_response({"items": items})
 
@@ -509,7 +509,7 @@ async def minimax_detect_shots(request):
     except ImportError as exc:
         return web.Response(status=400, text=str(exc))
     except Exception as exc:
-        log.warning("MiniMax H3 Director shot detect failed: %s", exc)
+        log.warning("VideoDirector shot detect failed: %s", exc)
         return web.Response(status=400, text=str(exc))
 
     return web.json_response(result)
@@ -580,7 +580,7 @@ async def minimax_first_pass_cache_status(request):
             inspect_first_pass_cache(cache_key, plan, external_groups=witness)
         )
     except Exception as exc:
-        log.warning("MiniMax H3 Director first-pass cache inspection failed: %s", exc)
+        log.warning("VideoDirector first-pass cache inspection failed: %s", exc)
         return web.json_response(
             {"exists": False, "matches": False, "error": str(exc)},
             status=400,
@@ -612,7 +612,7 @@ async def minimax_clear_segment_cache(request):
         removed = clear_segment_cache(cache_key, kind=kind)
         return web.json_response({"removed": removed, "kind": kind})
     except Exception as exc:
-        log.warning("MiniMax H3 Director clear segment cache failed: %s", exc)
+        log.warning("VideoDirector clear segment cache failed: %s", exc)
         return web.Response(status=500, text=str(exc))
 
 
@@ -628,55 +628,55 @@ def _register_route(routes, method: str, path: str, handler) -> None:
 
 
 def register_routes() -> bool:
-    """Register MiniMax H3 Director HTTP routes on the ComfyUI PromptServer."""
+    """Register VideoDirector HTTP routes on the ComfyUI PromptServer."""
     global _ROUTES_REGISTERED
     if _ROUTES_REGISTERED:
         return True
 
     server = PromptServer.instance
     if server is None:
-        log.warning("MiniMax H3 Director: PromptServer not ready, HTTP routes not registered")
+        log.warning("VideoDirector: PromptServer not ready, HTTP routes not registered")
         return False
 
     routes = server.routes
-    _register_route(routes, "POST", "/minimax/director/upload_chunk", minimax_upload_video_chunk)
+    _register_route(routes, "POST", "/videodirector/upload_chunk", minimax_upload_video_chunk)
     _register_route(
         routes,
         "POST",
-        "/minimax/director/extract_reference_audio",
+        "/videodirector/extract_reference_audio",
         minimax_extract_reference_audio,
     )
     _register_route(
         routes,
         "POST",
-        "/minimax/director/prepare_reference_audio_chunk",
+        "/videodirector/prepare_reference_audio_chunk",
         minimax_prepare_reference_audio_chunk,
     )
-    _register_route(routes, "POST", "/minimax/director/probe_video", minimax_probe_video)
-    _register_route(routes, "GET", "/minimax/director/probe_video", minimax_probe_video)
-    _register_route(routes, "GET", "/minimax/director/list_input_media", minimax_list_input_media)
-    _register_route(routes, "POST", "/minimax/director/detect_shots", minimax_detect_shots)
+    _register_route(routes, "POST", "/videodirector/probe_video", minimax_probe_video)
+    _register_route(routes, "GET", "/videodirector/probe_video", minimax_probe_video)
+    _register_route(routes, "GET", "/videodirector/list_input_media", minimax_list_input_media)
+    _register_route(routes, "POST", "/videodirector/detect_shots", minimax_detect_shots)
     _register_route(
         routes,
         "POST",
-        "/minimax/director/first_pass_cache_status",
+        "/videodirector/first_pass_cache_status",
         minimax_first_pass_cache_status,
     )
     _register_route(
         routes,
         "POST",
-        "/minimax/director/clear_segment_cache",
+        "/videodirector/clear_segment_cache",
         minimax_clear_segment_cache,
     )
     from .pack import minimax_download_pack, minimax_export_pack, minimax_import_pack
 
-    _register_route(routes, "POST", "/minimax/director/export_pack", minimax_export_pack)
-    _register_route(routes, "GET", "/minimax/director/download_pack", minimax_download_pack)
-    _register_route(routes, "POST", "/minimax/director/import_pack", minimax_import_pack)
+    _register_route(routes, "POST", "/videodirector/export_pack", minimax_export_pack)
+    _register_route(routes, "GET", "/videodirector/download_pack", minimax_download_pack)
+    _register_route(routes, "POST", "/videodirector/import_pack", minimax_import_pack)
     from .lora_previews import minimax_lora_preview, minimax_lora_previews
 
-    _register_route(routes, "GET", "/minimax/director/lora_previews", minimax_lora_previews)
-    _register_route(routes, "GET", "/minimax/director/lora_preview", minimax_lora_preview)
+    _register_route(routes, "GET", "/videodirector/lora_previews", minimax_lora_previews)
+    _register_route(routes, "GET", "/videodirector/lora_preview", minimax_lora_preview)
     _ROUTES_REGISTERED = True
-    log.info("MiniMax H3 Director HTTP routes registered")
+    log.info("VideoDirector HTTP routes registered")
     return True

@@ -1,4 +1,4 @@
-"""External multi-group packs for MiniMax H3 Director (graph-wired inputs).
+"""External multi-group packs for VideoDirector (graph-wired inputs).
 
 Two packer nodes produce ``MMX_DIR_GROUPS`` lists that override the UI timeline
 media/prompts at execute time (external-priority).
@@ -27,7 +27,7 @@ from .fl2v_timeline import (
 )
 from .frame_align import minimax_align_frame_count
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.external_groups")
+log = logging.getLogger("ComfyUI-VideoDirector.director.external_groups")
 
 MMX_DIR_GROUP = "MMX_DIR_GROUP"
 # Same Comfy type string so a single group dict or a combined list can both
@@ -496,12 +496,12 @@ def validate_external_group_inputs(
     i2v = normalize_groups_list(i2v_groups)
     r2v = normalize_groups_list(r2v_groups)
     if i2v_linked and not i2v:
-        raise ValueError("MiniMax H3 Director: i2v_groups is connected but contains no groups.")
+        raise ValueError("VideoDirector: i2v_groups is connected but contains no groups.")
     if r2v_linked and not r2v:
-        raise ValueError("MiniMax H3 Director: r2v_groups is connected but contains no groups.")
+        raise ValueError("VideoDirector: r2v_groups is connected but contains no groups.")
     if i2v and r2v:
         raise ValueError(
-            "MiniMax H3 Director: connect either Image to Video groups (i2v_groups) "
+            "VideoDirector: connect either Image to Video groups (i2v_groups) "
             "or Reference to Video groups (r2v_groups), not both."
         )
     task_key = resolve_task_key(task_type)
@@ -510,14 +510,14 @@ def validate_external_group_inputs(
 
     if task_key == "mixed":
         raise ValueError(
-            "MiniMax H3 Director: mixed mode does not use i2v_groups / r2v_groups. "
+            "VideoDirector: mixed mode does not use i2v_groups / r2v_groups. "
             "Switch task_type back to t2v / i2v / fl2v / r2v, or disconnect the Group input."
         )
 
     if i2v:
         if task_key not in I2V_FAMILY:
             raise ValueError(
-                f"MiniMax H3 Director: i2v_groups is connected but task_type is '{task_key}'. "
+                f"VideoDirector: i2v_groups is connected but task_type is '{task_key}'. "
                 "Set task to t2v / i2v / fl2v."
             )
         for idx, g in enumerate(i2v):
@@ -549,7 +549,7 @@ def validate_external_group_inputs(
     # r2v
     if task_key != "r2v":
         raise ValueError(
-            f"MiniMax H3 Director: r2v_groups is connected but task_type is '{task_key}'. "
+            f"VideoDirector: r2v_groups is connected but task_type is '{task_key}'. "
             "Set task to r2v."
         )
     for g in r2v:

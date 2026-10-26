@@ -1,4 +1,4 @@
-"""Shared helpers for the MiniMax H3 Director timeline node."""
+"""Shared helpers for the VideoDirector timeline node."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ from ..lib.image_prep import fit_canvas, fit_video_long_edge
 from ..lib.video_io import load_timeline_segment
 from ..lib.task_prompts import task_type_combo_options
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director")
+log = logging.getLogger("ComfyUI-VideoDirector")
 
 
 def timeline_required_inputs() -> dict:
@@ -153,7 +153,7 @@ def director_perf_inputs() -> dict:
             {
                 "default": "",
                 "tooltip": (
-                    "分段缓存目录：output/minimax_seg_cache/<这个名字>_<节点id>/。"
+                    "分段缓存目录：output/videodirector_seg_cache/<这个名字>_<节点id>/。"
                     "留空 = 只用节点 id（旧行为，已有缓存目录不变）。"
                     "填了名字后，同一张图里的不同导演台、以及节点 id 不同的工作流会分开存放。"
                     "复制工作流后节点 id 通常不变，名字也相同的话仍然共用一个目录；要隔开就改名字。"
@@ -282,7 +282,7 @@ def prepare_director_plan(
         plan = _attach_refine(plan, refine)
         plan = _attach_face_refine(plan, face_refine)
         log.info(
-            "MiniMax H3 Director: external %s groups × %d (task=%s) | %s",
+            "VideoDirector: external %s groups × %d (task=%s) | %s",
             family,
             len(ext_groups),
             task_key,

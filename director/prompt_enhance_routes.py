@@ -1,4 +1,4 @@
-"""HTTP routes for MiniMax H3 Director LLM prompt enhancement."""
+"""HTTP routes for VideoDirector LLM prompt enhancement."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ from ..lib.prompt_enhancer import (
 from ..lib.task_prompts import resolve_task_key
 from .prompt_enhance_media import extract_input_video_frames_b64, load_input_image_b64
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director")
+log = logging.getLogger("ComfyUI-VideoDirector.director")
 
 
 async def director_enhance_models(request):
@@ -237,11 +237,11 @@ async def director_unload_ollama(request):
 
 
 def register_prompt_enhance_routes(routes, register_route) -> None:
-    register_route(routes, "POST", "/minimax/director/enhance_models", director_enhance_models)
-    register_route(routes, "POST", "/minimax/director/get_template", director_get_template)
-    register_route(routes, "POST", "/minimax/director/enhance", director_enhance_prompt)
-    register_route(routes, "POST", "/minimax/director/extract_frames", director_extract_frames)
-    register_route(routes, "POST", "/minimax/director/image_b64", director_image_b64)
-    register_route(routes, "POST", "/minimax/director/unload_model", director_unload_model)
-    register_route(routes, "POST", "/minimax/director/unload_ollama", director_unload_ollama)
-    log.info("MiniMax H3 Director prompt-enhance HTTP routes registered")
+    register_route(routes, "POST", "/videodirector/enhance_models", director_enhance_models)
+    register_route(routes, "POST", "/videodirector/get_template", director_get_template)
+    register_route(routes, "POST", "/videodirector/enhance", director_enhance_prompt)
+    register_route(routes, "POST", "/videodirector/extract_frames", director_extract_frames)
+    register_route(routes, "POST", "/videodirector/image_b64", director_image_b64)
+    register_route(routes, "POST", "/videodirector/unload_model", director_unload_model)
+    register_route(routes, "POST", "/videodirector/unload_ollama", director_unload_ollama)
+    log.info("VideoDirector prompt-enhance HTTP routes registered")

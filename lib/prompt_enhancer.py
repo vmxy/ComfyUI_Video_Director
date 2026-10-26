@@ -38,7 +38,7 @@ from .prompt_enhance_templates import (
 )
 from .task_prompts import resolve_task_key
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.prompt_enhancer")
+log = logging.getLogger("ComfyUI-VideoDirector.prompt_enhancer")
 
 DEFAULT_OLLAMA_URL = "http://127.0.0.1:11434/v1"
 DEFAULT_OLLAMA_MODEL = "qwen3.5"

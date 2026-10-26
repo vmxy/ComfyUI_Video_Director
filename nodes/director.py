@@ -1,4 +1,4 @@
-"""MiniMax H3 Director — timeline UI + official MiniMax H3 AV execution."""
+"""VideoDirector — timeline UI + official MiniMax H3 AV execution."""
 
 from __future__ import annotations
 
@@ -214,19 +214,19 @@ class MiniMaxH3Director:
             got_bridge = input_types.get("semantic_bridge")
             if got_bridge is not None and got_bridge != "MMX_DIR_SEMANTIC_BRIDGE":
                 return (
-                    "semantic_bridge: expected MiniMax H3 Director Semantic Bridge "
+                    "semantic_bridge: expected VideoDirector Semantic Bridge "
                     f"(MMX_DIR_SEMANTIC_BRIDGE), linked node returns {got_bridge}."
                 )
             got_selflift = input_types.get("selflift")
             if got_selflift is not None and got_selflift != "MMX_DIR_SELFLIFT":
                 return (
-                    "selflift: expected MiniMax H3 Director SelfLift "
+                    "selflift: expected VideoDirector SelfLift "
                     f"(MMX_DIR_SELFLIFT), linked node returns {got_selflift}."
                 )
             got_face = input_types.get("face_refine")
             if got_face is not None and got_face != "MMX_DIR_FACE_REFINE":
                 return (
-                    "face_refine: expected MiniMax H3 Director FaceRefine "
+                    "face_refine: expected VideoDirector FaceRefine "
                     f"(MMX_DIR_FACE_REFINE), linked node returns {got_face}."
                 )
         return True
@@ -263,15 +263,15 @@ class MiniMaxH3Director:
     FUNCTION = "execute"
     CATEGORY = _CATEGORY
     DESCRIPTION = (
-        "MiniMax H3 Director: MiniMaxH3ImageToVideo / ReferenceToVideo conditioning, "
+        "VideoDirector: MiniMaxH3ImageToVideo / ReferenceToVideo conditioning, "
         "single-stage KSampler + MiniMaxH3SigmaShift, LTXVSeparateAVLatent decode. "
         "Supports t2v / i2v / fl2v / r2v / v2v / rv2v. "
         "Optional i2v_groups / r2v_groups accept multi-group packs from Director Group nodes "
         "(external priority over UI cards). Optional semantic_bridge accepts "
-        "MiniMax H3 Director Semantic Bridge (cond-token student; Ref2VA forced-compat). "
-        "Optional selflift accepts MiniMax H3 Director SelfLift "
-        "(progressive first-pass on this canvas). Optional refine accepts MiniMax H3 Director Refine "
-        "(second sample / upscale). Optional face_refine accepts MiniMax H3 Director FaceRefine "
+        "VideoDirector Semantic Bridge (cond-token student; Ref2VA forced-compat). "
+        "Optional selflift accepts VideoDirector SelfLift "
+        "(progressive first-pass on this canvas). Optional refine accepts VideoDirector Refine "
+        "(second sample / upscale). Optional face_refine accepts VideoDirector FaceRefine "
         "(crop / re-sample / stitch). images_pre_refine is the first-pass video before refine. "
         "images_pre_face_refine is the video before face stitch "
         "(blocked unless FaceRefine is connected and「输出修脸前」is on). "

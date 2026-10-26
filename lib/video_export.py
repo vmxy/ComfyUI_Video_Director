@@ -14,7 +14,7 @@ from typing import Any
 import numpy as np
 import torch
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.video_export")
+log = logging.getLogger("ComfyUI-VideoDirector.video_export")
 
 
 def _ffmpeg_bin() -> str | None:

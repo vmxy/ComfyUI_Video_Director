@@ -1,6 +1,6 @@
 [project]
-name = "minimax-h3-director"
-description = "Multi-segment MiniMax H3 Director — official MiniMaxH3ImageToVideo / ReferenceToVideo pipeline."
+name = "videodirector"
+description = "Multi-segment VideoDirector — official MiniMaxH3ImageToVideo / ReferenceToVideo pipeline."
 version = "1.0.0"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
@@ -20,6 +20,6 @@ Documentation = "https://github.com/AIMixer/ComfyUI_MiniMaxH3_Director#readme"
 
 [tool.comfy]
 PublisherId = "aimixer"
-DisplayName = "MiniMax H3 Director"
+DisplayName = "VideoDirector"
 Icon = ""
 requires-comfyui = ">=0.30.0"

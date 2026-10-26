@@ -1,4 +1,4 @@
-"""MiniMax H3 Director pack (script + assets) import/export.
+"""VideoDirector pack (script + assets) import/export.
 
 Zip layout uses ASCII paths that match the English UI:
   shared_params/  Asset group folders  PictureN / VideoN / AudioN
@@ -27,7 +27,7 @@ from aiohttp import web
 
 from ..lib.task_prompts import resolve_task_key, task_type_option_label, TASK_PROMPT_BY_KEY
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.pack")
+log = logging.getLogger("ComfyUI-VideoDirector.director.pack")
 
 PACK_FORMAT = "minimax-h3-director-pack"
 PACK_VERSION = 1
@@ -61,7 +61,7 @@ PAIRED_AUDIO_KEYS = ("pairedAudioFile", "paired_audio_file")
 
 
 def _pack_export_root() -> Path:
-    root = Path(folder_paths.get_temp_directory()) / "minimax_director_pack_export"
+    root = Path(folder_paths.get_temp_directory()) / "videodirector_pack_export"
     root.mkdir(parents=True, exist_ok=True)
     return root
 
@@ -635,7 +635,7 @@ def build_export_pack(timeline: dict, widgets: dict | None = None, *, dry_run: b
         _write_json(staging / "timeline.json", data)
 
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        download_name = f"MiniMaxH3Director-{task_key}-{stamp}.mmxpack.zip"
+        download_name = f"VideoDirector-{task_key}-{stamp}.mmxpack.zip"
         stored_name = f"{uuid.uuid4().hex}.mmxpack.zip"
         _purge_pack_exports(keep=stored_name)
         zip_path = _pack_export_root() / stored_name
@@ -908,7 +908,7 @@ def _prefix_pack_paths(obj: Any, prefix: str) -> None:
         if not val:
             continue
         rel = str(val).replace("\\", "/").strip().lstrip("/")
-        if rel.startswith("minimax_director_packs/"):
+        if rel.startswith("videodirector_packs/"):
             continue
         if rel.startswith(PACK_PREFIXES):
             new_rel = f"{prefix}/{rel}"
@@ -1040,8 +1040,8 @@ def import_extracted_pack(extracted: Path) -> dict[str, Any]:
     _fill_empty_prompts_from_pack_files(timeline, extracted)
 
     pack_id = uuid.uuid4().hex[:12]
-    rel_prefix = f"minimax_director_packs/{pack_id}"
-    dest = _input_dir() / "minimax_director_packs" / pack_id
+    rel_prefix = f"videodirector_packs/{pack_id}"
+    dest = _input_dir() / "videodirector_packs" / pack_id
     _copy_tree_media(extracted, dest)
     _prefix_pack_paths(timeline, rel_prefix)
     missing: list[str] = []

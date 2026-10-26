@@ -1,4 +1,4 @@
-"""Per-segment LoRA stacks for MiniMax H3 Director.
+"""Per-segment LoRA stacks for VideoDirector.
 
 Every timeline segment can carry its own list of LoRAs. They are applied to a
 clone of the segment's base MODEL right before sampling, so one Director run
@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.segment_loras")
+log = logging.getLogger("ComfyUI-VideoDirector.director.segment_loras")
 
 MAX_SEGMENT_LORAS = 8
 MIN_LORA_STRENGTH = -10.0
@@ -125,7 +125,7 @@ def apply_segment_loras(
             path = folder_paths.get_full_path_or_raise("loras", name)
         except Exception as exc:
             raise ValueError(
-                "MiniMax H3 Director: segment LoRA '%s' not found under models/loras (%s)."
+                "VideoDirector: segment LoRA '%s' not found under models/loras (%s)."
                 % (name, exc)
             ) from exc
 

@@ -1,4 +1,4 @@
-"""First-pass SelfLift (progressive dual-resolution) for MiniMax H3 Director."""
+"""First-pass SelfLift (progressive dual-resolution) for VideoDirector."""
 
 from .pack import (
     MMX_DIR_SELFLIFT,

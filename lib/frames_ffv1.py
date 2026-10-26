@@ -31,7 +31,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.frames_ffv1")
+log = logging.getLogger("ComfyUI-VideoDirector.frames_ffv1")
 
 #: Suffix used for frame payloads on disk (``seg_0000.frames.mkv``).
 FRAMES_SUFFIX = ".frames.mkv"

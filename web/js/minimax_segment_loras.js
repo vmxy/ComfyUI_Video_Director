@@ -1,4 +1,4 @@
-/** Per-segment LoRA rows for the MiniMax H3 Director segment panel.
+/** Per-segment LoRA rows for the VideoDirector segment panel.
  *
  * A segment stores its stack as `segment.loras = [{name, strength, active}]`.
  * The backend (director/segment_loras.py) patches those onto that segment's
@@ -43,7 +43,7 @@ export function loraNames() {
 export function loraInfo() {
     if (!_loraInfoPromise) {
         _loraInfoPromise = api
-            .fetchApi("/minimax/director/lora_previews")
+            .fetchApi("/videodirector/lora_previews")
             .then((r) => (r.ok ? r.json() : null))
             .then((j) => {
                 if (j?.catalog && typeof j.catalog === "object") return j.catalog;
@@ -146,7 +146,7 @@ function badge(text, cls = "") {
 
 function previewURL(name, preview) {
     const v = encodeURIComponent(String(preview?.v ?? 0));
-    return api.apiURL(`/minimax/director/lora_preview?name=${encodeURIComponent(name)}&v=${v}`);
+    return api.apiURL(`/videodirector/lora_preview?name=${encodeURIComponent(name)}&v=${v}`);
 }
 
 function emptyThumb(box, name) {

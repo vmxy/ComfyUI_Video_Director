@@ -221,7 +221,7 @@
     },
     {
       "id": 5,
-      "type": "MiniMaxH3Director",
+      "type": "VD",
       "pos": [
         -280,
         80
@@ -462,7 +462,7 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "MiniMaxH3Director"
+        "Node name for S&R": "VD"
       },
       "widgets_values": [
         "fl2v — 首尾帧生视频(First-Last Frame)",
@@ -720,10 +720,10 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "MiniMax H3 Director · fl2v",
+      "title": "VideoDirector · fl2v",
       "properties": {},
       "widgets_values": [
-        "## MiniMax H3 Director — 首尾帧 (fl2v)\n\n1. 加载与 t2v 相同的 fl2va UNET / CLIP / VAE\n2. 在导演台点 **添加一组**：上传 **首帧**（必传）、**尾帧**（可选；空=图生视频）\n3. 可添加多组；每组时长独立，总时长=各组之和\n4. 正向提示词写中间运动过程 → Queue Prompt\n\n帧数会按 17k+5 网格对齐（如 124）。\n"
+        "## VideoDirector — 首尾帧 (fl2v)\n\n1. 加载与 t2v 相同的 fl2va UNET / CLIP / VAE\n2. 在导演台点 **添加一组**：上传 **首帧**（必传）、**尾帧**（可选；空=图生视频）\n3. 可添加多组；每组时长独立，总时长=各组之和\n4. 正向提示词写中间运动过程 → Queue Prompt\n\n帧数会按 17k+5 网格对齐（如 124）。\n"
       ],
       "color": "#432",
       "bgcolor": "#653"
@@ -834,7 +834,7 @@
     },
     {
       "id": 2,
-      "title": "MiniMax H3 Director",
+      "title": "VideoDirector",
       "bounding": [
         -320,
         40,
@@ -860,7 +860,7 @@
   "config": {},
   "extra": {
     "frontendVersion": "1.23.0",
-    "note": "MiniMax H3 Director · fl2v",
+    "note": "VideoDirector · fl2v",
     "ds": {
       "scale": 0.85,
       "offset": [

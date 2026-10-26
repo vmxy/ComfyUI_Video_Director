@@ -28,7 +28,7 @@ from .h3_motion_context import (
     video_from_latent,
 )
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.h3_latent_continue")
+log = logging.getLogger("ComfyUI-VideoDirector.h3_latent_continue")
 
 CONTINUE_PIPELINE_ID = "minimax_h3_latent_continue_v4"
 PREFIX_STEPS_KEY = "_director_continue_prefix_steps"

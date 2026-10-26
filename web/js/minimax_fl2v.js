@@ -1294,7 +1294,7 @@ function renderFl2vShotCards(editor) {
                 try {
                     await pickFl2vSlotImage(editor, i, kind);
                 } catch (err) {
-                    console.error("[MiniMax H3Director] fl2v pick failed:", err);
+                    console.error("[VideoDirector] fl2v pick failed:", err);
                 }
             });
         }

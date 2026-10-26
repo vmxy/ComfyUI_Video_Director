@@ -12,7 +12,7 @@ import torch.nn.functional as F
 
 from ..h3_motion_context import _repack_av_streams, _streams_from_latent
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.selflift.cond")
+log = logging.getLogger("ComfyUI-VideoDirector.selflift.cond")
 
 
 def interpolate_video_5d(video: torch.Tensor, dst_h: int, dst_w: int, mode: str) -> torch.Tensor:

@@ -1,4 +1,4 @@
-"""Build ComfyUI AUDIO outputs for MiniMax H3 Director runs.
+"""Build ComfyUI AUDIO outputs for VideoDirector runs.
 
 Prefers model-generated audio from AV latent decode; falls back to source-video extract.
 """
@@ -17,7 +17,7 @@ from ..lib.audio_io import (
     load_reference_audio,
 )
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.audio_export")
+log = logging.getLogger("ComfyUI-VideoDirector.audio_export")
 
 SILENT_SAMPLE_RATE = 44100
 

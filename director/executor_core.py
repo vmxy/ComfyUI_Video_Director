@@ -1,4 +1,4 @@
-"""Run MiniMax H3 Director segments through the official ComfyUI core pipeline."""
+"""Run VideoDirector segments through the official ComfyUI core pipeline."""
 
 from __future__ import annotations
 
@@ -100,7 +100,7 @@ from .segment_continuity import (
 )
 from .vram_cleanup import cleanup_segment_vram
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.core")
+log = logging.getLogger("ComfyUI-VideoDirector.director.core")
 
 
 def _segment_disk_cache_needed(
@@ -615,7 +615,7 @@ def execute_director_plan_core(
         nonlocal held_for_confirmation
         if seg.task_key not in SUPPORTED_TASK_KEYS:
             raise ValueError(
-                f"Task '{seg.task_key}' is not supported on MiniMax H3 Director. "
+                f"Task '{seg.task_key}' is not supported on VideoDirector. "
                 f"Supported: {', '.join(sorted(SUPPORTED_TASK_KEYS))}."
             )
 
@@ -894,7 +894,7 @@ def execute_director_plan_core(
 
         positive, sb_note = apply_semantic_bridge(positive, plan, task_key=seg.task_key)
         if sb_note:
-            log.info("MiniMax H3 Director: %s", sb_note)
+            log.info("VideoDirector: %s", sb_note)
 
         trim_frames = 0
         after_shift = None
@@ -1543,7 +1543,7 @@ def execute_director_plan_core(
             face_skipped = str(face_note or "").startswith(FACE_REFINE_SKIP_NO_FACE)
             if face_skipped:
                 log.warning(
-                    "MiniMax H3 Director segment %d/%d: %s",
+                    "VideoDirector segment %d/%d: %s",
                     ui_idx + 1,
                     timeline_seg_total,
                     face_note,
@@ -1654,7 +1654,7 @@ def execute_director_plan_core(
             f"cleanup={'skipped' if progress_index >= seg_total - 1 else 'between-seg'}"
         )
         log.info(
-            "MiniMax H3 Director segment %d/%d done (%d frames, task=%s)",
+            "VideoDirector segment %d/%d done (%d frames, task=%s)",
             ui_idx + 1, timeline_seg_total, target_len, seg.task_key,
         )
         return chunk, audio_dict, pre_chunk, pre_face_chunk

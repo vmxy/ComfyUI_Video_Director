@@ -1,6 +1,6 @@
-/** MiniMax H3 Director Semantic Bridge — first-pass cache witness. */
+/** VideoDirector Semantic Bridge — first-pass cache witness. */
 
-const SEMANTIC_BRIDGE_CLASS = "MiniMaxH3DirectorSemanticBridge";
+const SEMANTIC_BRIDGE_CLASS = "VDSemanticBridge";
 const BYPASS_MODES = new Set([2, 4]);
 
 function isSemanticBridgeNode(node) {

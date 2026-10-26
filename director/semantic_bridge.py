@@ -27,7 +27,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.semantic_bridge")
+log = logging.getLogger("ComfyUI-VideoDirector.director.semantic_bridge")
 
 MMX_DIR_SEMANTIC_BRIDGE = "MMX_DIR_SEMANTIC_BRIDGE"
 
@@ -266,18 +266,18 @@ def apply_semantic_bridge(positive, plan, *, task_key: str = ""):
     path = resolve_semantic_bridge_path(adapter)
     if not path:
         note = f"Semantic Bridge skipped: adapter not found ({adapter or 'empty'})"
-        log.warning("MiniMax H3 Director: %s", note)
+        log.warning("VideoDirector: %s", note)
         return positive, note
 
     if not isinstance(positive, list) or not positive:
         note = "Semantic Bridge skipped: empty conditioning"
-        log.warning("MiniMax H3 Director: %s", note)
+        log.warning("VideoDirector: %s", note)
         return positive, note
 
     item0 = positive[0]
     if not isinstance(item0, (list, tuple)) or not item0:
         note = "Semantic Bridge skipped: unexpected conditioning layout"
-        log.warning("MiniMax H3 Director: %s", note)
+        log.warning("VideoDirector: %s", note)
         return positive, note
 
     hidden, meta = item0[0], (item0[1] if len(item0) > 1 else None)
@@ -285,7 +285,7 @@ def apply_semantic_bridge(positive, plan, *, task_key: str = ""):
         return positive, None
     if not isinstance(hidden, torch.Tensor):
         note = "Semantic Bridge skipped: cond[0][0] is not a tensor"
-        log.warning("MiniMax H3 Director: %s", note)
+        log.warning("VideoDirector: %s", note)
         return positive, note
 
     try:
@@ -298,7 +298,7 @@ def apply_semantic_bridge(positive, plan, *, task_key: str = ""):
         )
     except Exception as exc:
         note = f"Semantic Bridge skipped: {exc}"
-        log.warning("MiniMax H3 Director: %s", note)
+        log.warning("VideoDirector: %s", note)
         return positive, note
 
     new_meta = dict(meta) if isinstance(meta, dict) else {}

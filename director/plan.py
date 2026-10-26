@@ -1,4 +1,4 @@
-"""Parse MiniMax H3 Director timeline JSON and prepare per-segment edit plans."""
+"""Parse VideoDirector timeline JSON and prepare per-segment edit plans."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ from .gen_timeline import (
     is_gen_timeline,
 )
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director")
+log = logging.getLogger("ComfyUI-VideoDirector.director")
 
 MIN_SEGMENT_FRAMES = 4
 DEFAULT_CONTINUITY_OVERLAP = 22
@@ -313,7 +313,7 @@ class DirectorPlan:
     # cache-status panel cannot rebuild the segments from widget values; it
     # compares this witness instead. See director/external_groups.py.
     external_groups_witness: dict | None = None
-    # Set during execute when export_mode=segments (minimax_seg_export folder).
+    # Set during execute when export_mode=segments (videodirector_seg_export folder).
     segment_mp4_run_dir: str | None = None
 
     @property
@@ -402,7 +402,7 @@ def load_source_video_from_timeline(timeline: dict) -> torch.Tensor:
     if total <= 0:
         video = timeline.get("video") or {}
         if not (video.get("frames") or []):
-            raise ValueError("No frames in MiniMax H3 Director timeline.")
+            raise ValueError("No frames in VideoDirector timeline.")
     return load_timeline_segment(timeline, 0, max(1, total))
 
 
@@ -726,7 +726,7 @@ def _parse_run_selection(timeline: dict, segment_count: int) -> frozenset[int] |
     indices = {int(i) for i in raw if 0 <= int(i) < segment_count}
     if not indices:
         raise ValueError(
-            "MiniMax H3 Director: 「选择运行」已开启但未勾选任何片段/提示词组。请至少勾选一组再执行。"
+            "VideoDirector: 「选择运行」已开启但未勾选任何片段/提示词组。请至少勾选一组再执行。"
         )
     if len(indices) >= segment_count:
         return None
@@ -844,7 +844,7 @@ def build_director_plan(
     clips = video_clips_from_timeline(load_timeline)
     if not clips and not (load_timeline.get("video") or {}).get("frames"):
         raise ValueError(
-            "No source video in MiniMax H3 Director. Upload a video inside the node timeline UI before running."
+            "No source video in VideoDirector. Upload a video inside the node timeline UI before running."
         )
 
     try:
@@ -1084,7 +1084,7 @@ def plan_summary(plan: DirectorPlan) -> str:
         else:
             mode_label = "空白画布" if mode == "gen_blank" else "图片生成"
         lines = [
-            f"MiniMax H3 Director [{mode_label}] ({plan.edit_mode}): "
+            f"VideoDirector [{mode_label}] ({plan.edit_mode}): "
             f"{plan.segment_count} segment(s), {plan.total_frames} frames @ {plan.frame_rate:.2f} fps",
             f"Output: {plan.width}×{plan.height} ({plan.output_mode})",
             f"Global task: {get_task_prompt_spec(plan.global_task_type).label}",
@@ -1166,7 +1166,7 @@ def plan_summary(plan: DirectorPlan) -> str:
         else "源视频时间轴"
     )
     lines = [
-        f"MiniMax H3 Director [{mode_label}] ({plan.edit_mode}): {plan.segment_count} segment(s), "
+        f"VideoDirector [{mode_label}] ({plan.edit_mode}): {plan.segment_count} segment(s), "
         f"{plan.total_frames} frames @ {plan.frame_rate:.2f} fps",
     ]
     if plan.export_max_frames > 0 and plan.source_total_frames > plan.total_frames:

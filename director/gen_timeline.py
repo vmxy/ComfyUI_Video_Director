@@ -1,4 +1,4 @@
-"""MiniMax H3 Director 鈥?generation timeline (t2i / t2v / i2i / i2v) plan building."""
+"""VideoDirector 鈥?generation timeline (t2i / t2v / i2i / i2v) plan building."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from ..lib.image_prep import (
 from ..lib.task_prompts import resolve_task_key
 from .segment_loras import normalize_lora_rows
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.gen")
+log = logging.getLogger("ComfyUI-VideoDirector.director.gen")
 
 GEN_BLANK_KEYS = frozenset({"t2v", "r2v", "mixed"})
 GEN_IMAGE_KEYS = frozenset({"i2v"})

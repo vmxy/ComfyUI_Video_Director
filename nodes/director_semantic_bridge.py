@@ -1,4 +1,4 @@
-"""Graph packer: Semantic Bridge for MiniMax H3 Director.semantic_bridge."""
+"""Graph packer: Semantic Bridge for VideoDirector.semantic_bridge."""
 
 from __future__ import annotations
 

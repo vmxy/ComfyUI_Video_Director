@@ -221,7 +221,7 @@
     },
     {
       "id": 5,
-      "type": "MiniMaxH3Director",
+      "type": "VD",
       "pos": [
         -280,
         80
@@ -462,7 +462,7 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "MiniMaxH3Director"
+        "Node name for S&R": "VD"
       },
       "widgets_values": [
         "t2v — 文生视频(Text to Video)",
@@ -720,10 +720,10 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "MiniMax H3 Director · t2v",
+      "title": "VideoDirector · t2v",
       "properties": {},
       "widgets_values": [
-        "## MiniMax H3 Director — 文生音视频 (t2v)\n\n1. 确认 UNET / CLIP / Video VAE / Audio VAE 文件名与本地一致\n2. CLIP **type 必须选 `minimax`**\n3. 在导演台节点内编辑提示词与帧数（默认 124≈5s @24fps）\n4. Queue Prompt\n\n模型建议：\n- `minimax_h3_fl2va_pruned_int8_convrot.safetensors`\n- `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`\n- `minimax_h3_video_vae_fp16.safetensors` / `minimax_h3_audio_vae_fp32.safetensors`\n"
+        "## VideoDirector — 文生音视频 (t2v)\n\n1. 确认 UNET / CLIP / Video VAE / Audio VAE 文件名与本地一致\n2. CLIP **type 必须选 `minimax`**\n3. 在导演台节点内编辑提示词与帧数（默认 124≈5s @24fps）\n4. Queue Prompt\n\n模型建议：\n- `minimax_h3_fl2va_pruned_int8_convrot.safetensors`\n- `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`\n- `minimax_h3_video_vae_fp16.safetensors` / `minimax_h3_audio_vae_fp32.safetensors`\n"
       ],
       "color": "#432",
       "bgcolor": "#653"
@@ -834,7 +834,7 @@
     },
     {
       "id": 2,
-      "title": "MiniMax H3 Director",
+      "title": "VideoDirector",
       "bounding": [
         -320,
         40,
@@ -860,7 +860,7 @@
   "config": {},
   "extra": {
     "frontendVersion": "1.23.0",
-    "note": "MiniMax H3 Director · t2v",
+    "note": "VideoDirector · t2v",
     "ds": {
       "scale": 0.85,
       "offset": [

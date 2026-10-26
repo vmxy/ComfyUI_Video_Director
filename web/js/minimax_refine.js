@@ -1,4 +1,4 @@
-/** MiniMax H3 Director Refine — show canvas widgets like Director output bar. */
+/** VideoDirector Refine — show canvas widgets like Director output bar. */
 
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
@@ -11,10 +11,10 @@ import { injectExternalGroupsWitness } from "./minimax_external_witness.js";
 import { collectSelfLiftWitness } from "./minimax_selflift.js";
 import { collectSemanticBridgeWitness } from "./minimax_semantic_bridge.js";
 
-const REFINE_CLASS = "MiniMaxH3DirectorRefine";
-const SELFLIFT_CLASS = "MiniMaxH3DirectorSelfLift";
-const SEMANTIC_BRIDGE_CLASS = "MiniMaxH3DirectorSemanticBridge";
-const DIRECTOR_CLASSES = new Set(["MiniMaxH3Director", "ComfyMiniMaxH3Director"]);
+const REFINE_CLASS = "VDRefine";
+const SELFLIFT_CLASS = "VDSelfLift";
+const SEMANTIC_BRIDGE_CLASS = "VDSemanticBridge";
+const DIRECTOR_CLASSES = new Set(["VD"]);
 const CACHE_STATUS_WIDGET = "first_pass_cache_status";
 const FOLLOW_DIRECTOR_ASPECT = "跟随导演台";
 const PACKER_CLASSES = new Set([SELFLIFT_CLASS, SEMANTIC_BRIDGE_CLASS]);
@@ -692,14 +692,14 @@ async function refreshFirstPassCacheStatus(node) {
     ensureFirstPassCacheUI(node);
     const director = connectedDirector(node);
     if (!director) {
-        renderCacheStatus(node, "未找到相连的 MiniMax H3 Director。", "warn");
+        renderCacheStatus(node, "未找到相连的 VideoDirector。", "warn");
         return;
     }
     const seq = (node._mmxCacheStatusSeq || 0) + 1;
     node._mmxCacheStatusSeq = seq;
     renderCacheStatus(node, "正在检查分段缓存…", "muted");
     try {
-        const response = await api.fetchApi("/minimax/director/first_pass_cache_status", {
+        const response = await api.fetchApi("/videodirector/first_pass_cache_status", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(cacheStatusPayload(director, node)),
@@ -793,7 +793,7 @@ function ensureFirstPassCacheUI(node) {
 async function clearSegmentCache(node) {
     const director = connectedDirector(node);
     if (!director) {
-        renderCacheStatus(node, "未找到相连的 MiniMax H3 Director。", "warn");
+        renderCacheStatus(node, "未找到相连的 VideoDirector。", "warn");
         return;
     }
     if (!window.confirm("确定清空这个节点的分段缓存吗？一采和成片都会删除，需要重新生成。")) {
@@ -801,7 +801,7 @@ async function clearSegmentCache(node) {
     }
     renderCacheStatus(node, "正在清空缓存…", "muted");
     try {
-        const response = await api.fetchApi("/minimax/director/clear_segment_cache", {
+        const response = await api.fetchApi("/videodirector/clear_segment_cache", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -953,7 +953,7 @@ function scheduleRefineRefresh(node) {
 }
 
 app.registerExtension({
-    name: "ComfyUI.MiniMaxH3DirectorRefine",
+    name: "ComfyUI.VideoDirectorRefine",
     async beforeRegisterNodeDef(nodeType, nodeData) {
         if (DIRECTOR_CLASSES.has(nodeData?.name)) {
             const onWidgetChanged = nodeType.prototype.onWidgetChanged;

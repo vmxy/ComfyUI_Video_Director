@@ -221,7 +221,7 @@
     },
     {
       "id": 5,
-      "type": "MiniMaxH3Director",
+      "type": "VD",
       "pos": [
         -280,
         80
@@ -462,7 +462,7 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "MiniMaxH3Director"
+        "Node name for S&R": "VD"
       },
       "widgets_values": [
         "v2v — 视频转视频(Video to Video)",
@@ -720,10 +720,10 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "MiniMax H3 Director · v2v",
+      "title": "VideoDirector · v2v",
       "properties": {},
       "widgets_values": [
-        "## MiniMax H3 Director — 视频编辑 (v2v)\n\n1. UNET 请使用 **ref2va** 权重\n   `minimax_h3_ref2va_pruned_int8_convrot.safetensors`\n2. 导演台点「上传视频」，按时间轴分段并填写提示词\n3. 每段源画面自动作为 `<Video 1>`（可手写标签；缺省会自动补）\n4. 连接 audio_vae 后 Queue Prompt\n"
+        "## VideoDirector — 视频编辑 (v2v)\n\n1. UNET 请使用 **ref2va** 权重\n   `minimax_h3_ref2va_pruned_int8_convrot.safetensors`\n2. 导演台点「上传视频」，按时间轴分段并填写提示词\n3. 每段源画面自动作为 `<Video 1>`（可手写标签；缺省会自动补）\n4. 连接 audio_vae 后 Queue Prompt\n"
       ],
       "color": "#432",
       "bgcolor": "#653"
@@ -834,7 +834,7 @@
     },
     {
       "id": 2,
-      "title": "MiniMax H3 Director",
+      "title": "VideoDirector",
       "bounding": [
         -320,
         40,
@@ -860,7 +860,7 @@
   "config": {},
   "extra": {
     "frontendVersion": "1.23.0",
-    "note": "MiniMax H3 Director · v2v",
+    "note": "VideoDirector · v2v",
     "ds": {
       "scale": 0.85,
       "offset": [

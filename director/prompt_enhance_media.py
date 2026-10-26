@@ -22,7 +22,7 @@ from ..lib.prompt_enhance_templates import (
     normalize_output_language,
 )
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director")
+log = logging.getLogger("ComfyUI-VideoDirector.director")
 
 LLM_VISION_MAX_SIDE = int(os.environ.get("BERNINI_PE_VISION_MAX_SIDE", "512"))
 LLM_VISION_JPEG_QUALITY = int(os.environ.get("BERNINI_PE_VISION_JPEG_QUALITY", "65"))

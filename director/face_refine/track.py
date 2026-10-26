@@ -16,7 +16,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.face_refine")
+log = logging.getLogger("ComfyUI-VideoDirector.director.face_refine")
 
 # Prefix is stable: executor skips seam fade / extra sample when this is returned.
 FACE_REFINE_SKIP_NO_FACE = "FaceRefine skipped"

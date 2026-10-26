@@ -19,7 +19,7 @@ from .h3_context_patches import (
     ensure_payload_patch,
 )
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.h3_motion_context")
+log = logging.getLogger("ComfyUI-VideoDirector.h3_motion_context")
 
 FPS = 24.0
 AUDIO_HZ = 40.0

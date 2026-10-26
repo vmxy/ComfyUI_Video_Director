@@ -1,4 +1,4 @@
-"""Graph packer: Refine / upscale config for MiniMax H3 Director.refine."""
+"""Graph packer: Refine / upscale config for VideoDirector.refine."""
 
 from __future__ import annotations
 
@@ -290,7 +290,7 @@ class MiniMaxH3DirectorRefine:
     FUNCTION = "pack"
     CATEGORY = _CATEGORY
     DESCRIPTION = (
-        "MiniMax H3 Director Refine: connect to Director.refine. "
+        "VideoDirector Refine: connect to Director.refine. "
         "Director.images is the refined / upscaled result; "
         "Director.images_pre_refine is the first-pass video (before second sample). "
         "Second sample uses SIGMAS from BasicScheduler / ManualSigmas. "

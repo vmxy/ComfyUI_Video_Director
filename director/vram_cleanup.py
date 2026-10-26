@@ -1,11 +1,11 @@
-"""Release GPU memory between MiniMax H3 Director segment runs."""
+"""Release GPU memory between VideoDirector segment runs."""
 
 from __future__ import annotations
 
 import gc
 import logging
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.vram")
+log = logging.getLogger("ComfyUI-VideoDirector.director.vram")
 
 
 def _evict_dead_loaded_models() -> int:
@@ -38,7 +38,7 @@ def _evict_dead_loaded_models() -> int:
                 pass
             models.pop(i)
             evicted += 1
-            log.info("MiniMax H3 Director: evicted dead LoadedModel slot (%s)", name)
+            log.info("VideoDirector: evicted dead LoadedModel slot (%s)", name)
         except Exception:
             continue
     return evicted
@@ -76,6 +76,6 @@ def cleanup_segment_vram(*, enabled: bool = True, unload_models: bool = True) ->
         log.warning("Segment VRAM cleanup failed: %s", exc)
         return
     if unload_models:
-        log.debug("MiniMax H3 Director: segment VRAM cleanup (models unloaded, cache cleared)")
+        log.debug("VideoDirector: segment VRAM cleanup (models unloaded, cache cleared)")
     else:
-        log.debug("MiniMax H3 Director: segment VRAM cleanup (cache cleared, models kept loaded)")
+        log.debug("VideoDirector: segment VRAM cleanup (cache cleared, models kept loaded)")

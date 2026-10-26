@@ -46,7 +46,7 @@ def _load_minimax_nodes():
         )
     except ImportError as exc:
         raise RuntimeError(
-            "MiniMaxH3Director requires ComfyUI official MiniMax H3 nodes "
+            "VideoDirector requires ComfyUI official MiniMax H3 nodes "
             "(comfy_extras.nodes_minimax_h3). Upgrade to ComfyUI with PR #15224 merged."
         ) from exc
     return MiniMaxH3ImageToVideo, MiniMaxH3ReferenceToVideo

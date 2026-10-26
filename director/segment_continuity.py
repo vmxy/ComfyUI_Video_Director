@@ -1,4 +1,4 @@
-"""Cross-segment continuity helpers for MiniMax H3 Director.
+"""Cross-segment continuity helpers for VideoDirector.
 
 Active path (opt-in「段间引导」): motion-context pin via
 ``director.h3_motion_context`` — previous segment AV tail → next segment
@@ -27,7 +27,7 @@ from .h3_motion_context import (
 from .plan import DirectorPlan, SegmentPlan, wan_align_frame_count
 from .segment_cache import load_segment_cache
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director.continuity")
+log = logging.getLogger("ComfyUI-VideoDirector.director.continuity")
 
 MIN_CONTINUITY_OVERLAP = 5
 MAX_CONTINUITY_OVERLAP = 56

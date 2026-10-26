@@ -1,4 +1,4 @@
-"""Runtime prompt enhancement hooks for MiniMax H3 Director executors."""
+"""Runtime prompt enhancement hooks for VideoDirector executors."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from ..lib.prompt_enhancer import (
 )
 from .prompt_enhance_media import collect_segment_vision_b64
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.director")
+log = logging.getLogger("ComfyUI-VideoDirector.director")
 
 
 @dataclass(frozen=True)
@@ -158,7 +158,7 @@ def notify_prompt_enhanced(
         from server import PromptServer
 
         PromptServer.instance.send_sync(
-            "minimax_director_enhanced",
+            "videodirector_enhanced",
             {
                 "node": node_id,
                 "text": text,

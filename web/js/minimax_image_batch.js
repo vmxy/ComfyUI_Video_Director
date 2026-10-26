@@ -668,7 +668,7 @@ async function uploadChunked(file) {
         body.append("total_chunks", String(totalChunks));
         body.append("filename", filename);
         body.append("chunk", file.slice(start, end), `${filename}.part`);
-        const resp = await api.fetchApi("/minimax/director/upload_chunk", { method: "POST", body });
+        const resp = await api.fetchApi("/videodirector/upload_chunk", { method: "POST", body });
         if (!resp.ok) throw new Error(await resp.text() || t("upload.chunkFailed", { status: resp.status }));
         const data = await resp.json();
         if (data.name) return data;
@@ -1152,7 +1152,7 @@ async function assignSegFl2vFromFile(editor, index, kind, file) {
         }
         applySegFl2vImage(editor, index, kind, imageFile, width, height);
     } catch (err) {
-        console.error("[MiniMax H3Director] mixed fl2v upload failed:", err);
+        console.error("[VideoDirector] mixed fl2v upload failed:", err);
         alert(t("upload.alertFailed", { err: err?.message || err }));
     }
 }
@@ -1174,7 +1174,7 @@ async function pickExistingSegFl2v(editor, index, kind) {
         if (!picked?.imageFile) return;
         applySegFl2vImage(editor, index, kind, picked.imageFile, picked.width, picked.height);
     } catch (err) {
-        console.error("[MiniMax H3Director] mixed fl2v pick failed:", err);
+        console.error("[VideoDirector] mixed fl2v pick failed:", err);
         alert(t("upload.alertFailed", { err: err?.message || err }));
     }
 }
@@ -1235,10 +1235,10 @@ async function assignSegSourceFromFile(editor, index, file) {
                 editor.scheduleTimelineSync?.();
             }
         } catch (dimErr) {
-            console.warn("[MiniMax H3Director] batch source dims skipped:", dimErr);
+            console.warn("[VideoDirector] batch source dims skipped:", dimErr);
         }
     } catch (err) {
-        console.error("[MiniMax H3Director] batch source upload failed:", err);
+        console.error("[VideoDirector] batch source upload failed:", err);
         alert(t("upload.alertFailed", { err: err?.message || err }));
     }
 }
@@ -1258,7 +1258,7 @@ async function pickExistingSegSource(editor, index) {
         if (!picked?.imageFile) return;
         applySegSourceImage(editor, index, picked.imageFile, picked.width, picked.height);
     } catch (err) {
-        console.error("[MiniMax H3Director] batch source pick failed:", err);
+        console.error("[VideoDirector] batch source pick failed:", err);
         alert(t("upload.alertFailed", { err: err?.message || err }));
     }
 }
@@ -1290,7 +1290,7 @@ async function assignSegRefFromFile(editor, index, slot, file) {
         editor.renderImageBatchGroups();
         editor.commit();
     } catch (err) {
-        console.error("[MiniMax H3Director] batch ref upload failed:", err);
+        console.error("[VideoDirector] batch ref upload failed:", err);
     }
 }
 
@@ -1322,7 +1322,7 @@ async function pickExistingSegRef(editor, index, offset, slots) {
         });
         await assignSegRefFromPicked(editor, index, slot, picked);
     } catch (err) {
-        console.error("[MiniMax H3Director] batch ref pick failed:", err);
+        console.error("[VideoDirector] batch ref pick failed:", err);
         alert(t("upload.alertFailed", { err: err?.message || err }));
     }
 }
@@ -1421,7 +1421,7 @@ async function assignSegAudioFromFile(editor, index, slot, file) {
         editor.commit();
         return true;
     } catch (err) {
-        console.error("[MiniMax H3Director] batch audio upload failed:", err);
+        console.error("[VideoDirector] batch audio upload failed:", err);
         alert(t("upload.refAudioFailed", { err: err?.message || err }));
         return false;
     }
@@ -1460,7 +1460,7 @@ async function assignSegVideoFromFile(editor, index, slot, file) {
         editor.commit();
         return true;
     } catch (err) {
-        console.error("[MiniMax H3Director] batch video upload failed:", err);
+        console.error("[VideoDirector] batch video upload failed:", err);
         alert(t("upload.refVideoBatchFailed", { err: err?.message || err }));
         return false;
     }
@@ -1498,7 +1498,7 @@ async function pickExistingSegVideo(editor, index, offset, slots) {
         editor.renderImageBatchGroups();
         editor.commit();
     } catch (err) {
-        console.error("[MiniMax H3Director] batch video pick failed:", err);
+        console.error("[VideoDirector] batch video pick failed:", err);
         alert(t("upload.refVideoBatchFailed", { err: err?.message || err }));
     }
 }
@@ -1533,7 +1533,7 @@ async function pickExistingSegAudio(editor, index, offset, slots) {
         editor.renderImageBatchGroups();
         editor.commit();
     } catch (err) {
-        console.error("[MiniMax H3Director] batch audio pick failed:", err);
+        console.error("[VideoDirector] batch audio pick failed:", err);
         alert(t("upload.refAudioFailed", { err: err?.message || err }));
     }
 }

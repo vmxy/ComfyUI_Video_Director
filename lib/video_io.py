@@ -14,7 +14,7 @@ import folder_paths
 
 from .image_prep import resolve_output_dimensions
 
-log = logging.getLogger("ComfyUI-MiniMaxH3-Director.video_io")
+log = logging.getLogger("ComfyUI-VideoDirector.video_io")
 
 
 def _require_cv2():
@@ -24,7 +24,7 @@ def _require_cv2():
         return cv2
     except ImportError as exc:
         raise ImportError(
-            "OpenCV is required for MiniMax H3 Director video loading. "
+            "OpenCV is required for VideoDirector video loading. "
             "Install: pip install opencv-python-headless"
         ) from exc
 
@@ -33,7 +33,7 @@ def resolve_video_path(video: dict) -> str:
     """Resolve timeline video metadata to an absolute path under ComfyUI input."""
     video_file = (video.get("videoFile") or video.get("fileName") or "").strip()
     if not video_file:
-        raise ValueError("No video file in MiniMax H3 Director timeline.")
+        raise ValueError("No video file in VideoDirector timeline.")
 
     base = folder_paths.get_input_directory()
     subfolder = (video.get("subfolder") or "").strip().replace("\\", "/")
@@ -607,7 +607,7 @@ def _decode_timeline_entries(
 ) -> torch.Tensor:
     clips = video_clips_from_timeline(timeline)
     if not clips:
-        raise ValueError("No video clips in MiniMax H3 Director timeline.")
+        raise ValueError("No video clips in VideoDirector timeline.")
 
     by_clip: dict[int, set[int]] = defaultdict(set)
     for clip_idx, frame_idx in entries:
