@@ -7,7 +7,7 @@ from typing import Any
 
 import torch
 
-from ..frame_align import minimax_align_frame_count
+from ..frame_align import align_frames
 from .inject import inject_video_latent
 from .stitch import stitch_faces
 from .track import track_and_crop
@@ -56,7 +56,7 @@ def apply_segment_face_refine(
         resolve_ref_image_size,
     )
     from ..refine_pack import parse_refine_sigmas
-    from ...lib.image_prep import assert_minimax_canvas, limit_ref_image_dict
+    from ...lib.image_prep import assert_canvas, limit_ref_image_dict
 
     if frames is None or not isinstance(frames, torch.Tensor) or frames.ndim != 4:
         raise ValueError("FaceRefine 需要解码后的视频帧。")
@@ -66,8 +66,8 @@ def apply_segment_face_refine(
     if crops is None or transform is None:
         return base[:n_src].contiguous(), track_note
     canvas_w, canvas_h = transform["canvas"]
-    assert_minimax_canvas(int(canvas_w), int(canvas_h))
-    gen_len = minimax_align_frame_count(int(crops.shape[0]))
+    assert_canvas(int(canvas_w), int(canvas_h))
+    gen_len = align_frames(int(crops.shape[0]))
     crop_in = _pad_frames(crops, gen_len)
 
     ref_kwargs = refs_to_kwargs_for_context(seg.task_key, seg.refs)

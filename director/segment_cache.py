@@ -25,8 +25,9 @@ import torch
 import folder_paths
 
 from ..lib.frames_ffv1 import FRAMES_SUFFIX, decode_frames_ffv1, encode_frames_ffv1
-from .h3_latent_continue import CONTINUE_PIPELINE_ID, clamp_seam_min_mask
-from .h3_motion_context import CONTINUITY_PIPELINE_ID, trim_context_prefix, trim_export_tail
+from .models.h3.latent_continue import CONTINUE_PIPELINE_ID
+from .models.h3.motion_context import CONTINUITY_PIPELINE_ID
+from .continuity_utils import clamp_seam_min_mask, trim_context_prefix, trim_export_tail
 from .plan import DirectorPlan, SegmentPlan, resolve_ref_image_size
 
 log = logging.getLogger("ComfyUI-VideoDirector.director.cache")
@@ -320,6 +321,14 @@ def _segment_identity_fingerprint(seg: SegmentPlan, plan: DirectorPlan) -> dict[
     }
     if plan.continuity_enabled and bool(getattr(plan, "continuity_keep_tail", True)):
         payload["continuity_keep_tail"] = True
+    # Different model family ⇒ different latents: keep the key only for
+    # non-default models so existing H3 caches stay valid after the upgrade.
+    model_key = str(getattr(plan, "model_key", "") or "")
+    if model_key:
+        from .models import default_model_key
+
+        if model_key != default_model_key():
+            payload["model_family"] = model_key
     witness = getattr(plan, "external_groups_witness", None)
     if isinstance(witness, dict):
         # This segment's own group only. The whole chain is deliberately *not*
@@ -1322,10 +1331,10 @@ def _external_group_frames(duration_sec: Any, fps: float) -> int:
     """Frame count of one group — the maths ``build_plan_from_external_groups``
     applies to that group's ``duration_sec`` when it turns groups into segments."""
     from .fl2v_timeline import MIN_FL2V_FRAMES, _duration_to_minimax_frames
-    from .frame_align import minimax_align_frame_count
+    from .frame_align import align_frames
 
     return int(
-        minimax_align_frame_count(
+        align_frames(
             max(
                 MIN_FL2V_FRAMES,
                 _duration_to_minimax_frames(_external_group_seconds(duration_sec), fps),

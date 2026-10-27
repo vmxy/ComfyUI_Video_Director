@@ -1,21 +1,29 @@
-"""Exact frame-count alignment for Director merge / cache / preview outputs."""
+"""Exact frame-count alignment for Director merge / cache / preview outputs.
+
+The temporal grid belongs to the active video model: MiniMax H3 uses 17k+5,
+most other video models use 4k+1. Shared helpers call :func:`align_frames` so a
+new model changes the grid without touching the pipeline.
+"""
 
 from __future__ import annotations
 
 import torch
 
 
+def align_frames(frame_count: int) -> int:
+    """Align to the active model's temporal grid."""
+    from .models import active_model
+
+    return active_model().align_frames(int(frame_count))
+
+
+# Legacy names kept for old workflows / third-party imports.
 def minimax_align_frame_count(frame_count: int) -> int:
-    """Round up to MiniMax H3 17k+5 frame grid (5, 22, 39, …)."""
-    n = max(5, int(frame_count))
-    while n % 17 != 5:
-        n += 1
-    return n
+    return align_frames(frame_count)
 
 
 def wan_align_frame_count(frame_count: int) -> int:
-    """Legacy alias — MiniMax H3 uses 17k+5, not Wan 4n+1."""
-    return minimax_align_frame_count(frame_count)
+    return align_frames(frame_count)
 
 
 def pad_or_trim_frames(frames: torch.Tensor, target_len: int) -> torch.Tensor:

@@ -537,6 +537,14 @@ async def minimax_first_pass_cache_status(request):
     timeline_data = body.get("timeline_data") or ""
     if isinstance(timeline_data, dict):
         timeline_data = json.dumps(timeline_data, ensure_ascii=False)
+    from .models import get_model, use_model
+
+    vmodel = get_model(body.get("model_family"))
+    with use_model(vmodel):
+        return _inspect_first_pass(body, cache_key, timeline_data, vmodel)
+
+
+def _inspect_first_pass(body, cache_key, timeline_data, vmodel):
     try:
         from .external_groups import external_witness_from_timeline_data
         from .plan import build_director_plan
@@ -560,6 +568,8 @@ async def minimax_first_pass_cache_status(request):
         plan.sample_sigmas_linked = bool(body.get("sigmas_linked"))
         plan.sample_shift_video = float(body.get("shift_video") or 12.0)
         plan.sample_shift_audio = float(body.get("shift_audio") or 3.0)
+        plan.model = vmodel
+        plan.model_key = vmodel.key
         from .selflift.pack import normalize_selflift_pack
         from .semantic_bridge import normalize_semantic_bridge_pack
         from .refine_pack import normalize_refine_pack

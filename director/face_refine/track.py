@@ -275,11 +275,11 @@ def track_and_crop(
 
     if canvas_mode != "manual":
         need = float(min(sm_sz.max() * crop_factor, height))
-        from ...lib.image_prep import ensure_minimax_canvas
+        from ...lib.image_prep import ensure_canvas
 
         snapped = int(np.ceil(need / 32.0) * 32)
         snapped = max(512, min(snapped, 768 if canvas_mode == "auto_capped_768" else 1344))
-        canvas_w, canvas_h = ensure_minimax_canvas(snapped, snapped)
+        canvas_w, canvas_h = ensure_canvas(snapped, snapped)
 
     aspect = canvas_w / float(canvas_h)
     boxes: list[tuple[float, float, float, float]] = []

@@ -11,7 +11,7 @@ from typing import Any
 
 import torch
 
-from ..lib.image_prep import assert_minimax_canvas, fit_canvas, fit_video_long_edge, resolve_output_dimensions
+from ..lib.image_prep import assert_canvas, fit_canvas, fit_video_long_edge, resolve_output_dimensions
 from ..lib.ref_audios import MAX_REFERENCE_AUDIOS
 from ..lib.ref_images import MAX_REFERENCE_IMAGES
 from ..lib.ref_videos import MAX_REFERENCE_VIDEOS
@@ -25,7 +25,7 @@ from .fl2v_timeline import (
     _unify_fl2v_pair_canvas,
     reinforce_fl2v_prompt,
 )
-from .frame_align import minimax_align_frame_count
+from .frame_align import align_frames
 
 log = logging.getLogger("ComfyUI-VideoDirector.director.external_groups")
 
@@ -480,7 +480,7 @@ def _resolve_dims(timeline: dict, width: int, height: int, ref_max_size: int, sa
         fixed_height=int(output_block.get("height") or timeline.get("height") or height or 480),
     )
     export_mode = _resolve_export_mode(output_block)
-    assert_minimax_canvas(out_w, out_h)
+    assert_canvas(out_w, out_h)
     return out_w, out_h, ref_max, out_mode, export_mode
 
 
@@ -679,7 +679,7 @@ def build_plan_from_external_groups(
         except (TypeError, ValueError):
             dur = DEFAULT_FL2V_DURATION_SEC
         fc = max(MIN_FL2V_FRAMES, _duration_to_minimax_frames(dur, fps))
-        fc = minimax_align_frame_count(fc)
+        fc = align_frames(fc)
         start_f = cursor
         end_f = cursor + fc
         cursor = end_f

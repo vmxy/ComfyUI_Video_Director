@@ -9,7 +9,7 @@ from typing import Any
 
 import torch
 
-from ..lib.image_prep import assert_minimax_canvas, fit_canvas, fit_video_long_edge, limit_ref_image_dict
+from ..lib.image_prep import assert_canvas, fit_canvas, fit_video_long_edge, limit_ref_image_dict
 from ..lib.task_modes import SUPPORTED_TASK_KEYS
 from ..nodes.conditioning import run_minimax_conditioning
 from .core_sampling import ShiftedModelCache, sample_single_stage
@@ -27,7 +27,7 @@ from .refine_pack import (
 )
 from .refine_sampling import apply_segment_refine
 from .segment_loras import apply_segment_loras, describe_lora_rows
-from .frame_align import minimax_align_frame_count, pad_or_trim_frames
+from .frame_align import align_frames, pad_or_trim_frames
 from .audio_export import (
     AUDIO_MODE_GENERATE,
     AUDIO_MODE_MUTE,
@@ -58,15 +58,17 @@ from .plan import (
     drop_unusable_audio_prompt_tags,
 )
 from .progress import report_director_finish, report_director_progress, report_director_segment_preview
-from .h3_motion_context import (
+from .models.h3.motion_context import (
     DEFAULT_AUDIO_CONTEXT_FRAMES,
     apply_motion_context,
-    continuity_export_len,
     describe_pin_window,
-    generation_frame_budget,
-    handoff_end_frame,
     select_continuity_pin_latent,
     snap_context_frames,
+)
+from .continuity_utils import (
+    continuity_export_len,
+    generation_frame_budget,
+    handoff_end_frame,
     trim_context_prefix,
     trim_export_tail,
 )
@@ -135,25 +137,17 @@ def _unpack_node_output(out):
     raise RuntimeError(f"Unexpected node output: {type(out)!r}")
 
 
-def _decode_av_latent(samples, vae, audio_vae, *, decode_audio: bool = True):
-    """Same as official r2v: VAEDecode + VAEDecodeAudio both take the AV latent.
+def _decode_latent(samples, vae, audio_vae, *, decode_audio: bool = True):
+    """Decode one sampled latent with the active video model.
 
-    VAEDecode unbinds the video stream; VAEDecodeAudio unbinds the audio stream.
-    Official VAE already writes pixels to ``intermediate_device()`` (CPU by default).
+    Models with native audio (MiniMax H3) return video + audio; video-only
+    families return a silent audio dict so downstream nodes keep working.
     """
-    from nodes import VAEDecode
+    from .models import active_model
 
-    images, = VAEDecode().decode(vae, samples)
-    if not decode_audio or audio_vae is None:
-        return images, empty_audio_dict()
-    try:
-        from comfy_extras.nodes_audio import VAEDecodeAudio
-    except ImportError:
-        from comfy_extras.nodes_lt import VAEDecodeAudio  # type: ignore
-
-    audio_out = VAEDecodeAudio.execute(audio_vae, samples)
-    audio = _unpack_node_output(audio_out)[0]
-    return images, audio
+    return active_model().decode(
+        samples, vae=vae, audio_vae=audio_vae, decode_audio=decode_audio
+    )
 
 
 def _trim_decoded_to_export(
@@ -407,7 +401,7 @@ def _ref_video_audios_to_dict(items) -> dict | None:
     return out or None
 
 
-def execute_director_plan_core(
+def _execute_director_plan_core(
     plan: DirectorPlan,
     *,
     node_id: str | None = None,
@@ -440,9 +434,13 @@ def execute_director_plan_core(
     torch.Tensor | None,
     list[torch.Tensor],
 ]:
-    """Process every segment with MiniMax H3 conditioning + single-stage sampling."""
+    """Process every segment with the active model conditioning + sampling."""
     # 缓存目录 key：填了「缓存文件夹名」用 <名字>_<节点id>，留空则只有节点 id（老工作流行为不变）。
     # 进度上报必须继续用真实节点 id —— 前端是按画布节点 id 认进度条的。
+    from .models import active_model
+
+    vmodel = active_model()
+    caps = vmodel.capabilities
     progress_node_id = node_id
     node_id = resolve_segment_cache_key(cache_name, node_id)
     plan.sample_seed = int(seed)
@@ -457,6 +455,13 @@ def execute_director_plan_core(
     plan.sample_shift_audio = float(shift_audio)
     audio_mode = resolve_audio_mode(plan)
     decode_audio = audio_mode == AUDIO_MODE_GENERATE
+    if decode_audio and not caps.native_audio:
+        # Video-only model: generate mode degrades to a silent track.
+        audio_mode = AUDIO_MODE_MUTE
+        decode_audio = False
+    continuity_blocked = bool(plan.continuity_enabled) and not caps.motion_context
+    if continuity_blocked:
+        plan.continuity_enabled = False
     # UI toggle on the player bar (timeline.liveTaePreview); default off.
     # When off: skip step TAE and the post-sample full-segment JPEG playback encode.
     raw_live = (plan.raw or {}).get("liveTaePreview", (plan.raw or {}).get("live_tae_preview", False))
@@ -491,11 +496,16 @@ def execute_director_plan_core(
     segment_pre_face: list[torch.Tensor] = []
     segment_audios: list[dict[str, Any]] = []
     skipped_no_cache: list[int] = []
-    reports: list[str] = [plan_summary(plan), "", "Execution path: ComfyUI official MiniMax H3"]
+    reports: list[str] = [
+        plan_summary(plan),
+        "",
+        f"Execution path: {vmodel.display_name} ({vmodel.key})",
+    ]
+    reports.extend(getattr(plan, "model_warnings", None) or [])
     if first_pass_sigmas is not None:
         sigma_steps = max(0, len(first_pass_sigmas) - 1)
         reports.append(
-            f"Sample: 外接 SIGMAS（{sigma_steps} 步）→ MiniMaxH3SigmaShift(model) → "
+            f"Sample: 外接 SIGMAS（{sigma_steps} 步）→ {vmodel.sample_pipeline_label} → "
             "BasicGuider/CFGGuider → SamplerCustomAdvanced。"
             "导演台步数/调度器已忽略。"
         )
@@ -505,7 +515,7 @@ def execute_director_plan_core(
                 "Sample: 外接 SIGMAS 无效（至少需要 2 个数），回退步数 + 调度器。"
             )
         reports.append(
-            "Sample: official MiniMaxH3SigmaShift → BasicScheduler → "
+            f"Sample: {vmodel.sample_pipeline_label} → BasicScheduler → "
             "BasicGuider/CFGGuider → SamplerCustomAdvanced."
         )
     # One timestamp folder per execute so all segments of this run stay together.
@@ -538,7 +548,7 @@ def execute_director_plan_core(
     elif audio_mode == AUDIO_MODE_SOURCE:
         reports.append("Audio: source — skip audio VAE decode, use original timeline audio.")
     else:
-        reports.append("Audio: generate — decode MiniMax H3 AV latent audio.")
+        reports.append(f"Audio: generate — decode {vmodel.display_name} latent audio.")
     selected_ui = ext_meta.get("selected")
     if selected_ui is not None:
         selected_set = {int(x) for x in selected_ui}
@@ -586,9 +596,14 @@ def execute_director_plan_core(
                 + ", #".join(str(i) for i in skipped_pin)
             )
     else:
+        reason = (
+            f"{vmodel.display_name} has no motion-context support"
+            if continuity_blocked
+            else "official per-segment path"
+        )
         reports.append(
-            "Segment continuity: OFF — official MiniMax H3 per-segment path "
-            "(no motion-context pin/patch/trim; r2v/v2v/rv2v use stock ReferenceToVideo)."
+            f"Segment continuity: OFF — {reason} "
+            "(no pin/patch/trim; reference tasks use the model's stock path)."
         )
 
     completed_outputs: dict[int, torch.Tensor] = {}
@@ -676,7 +691,7 @@ def execute_director_plan_core(
         else:
             clip_frames = None
 
-        num_frames = minimax_align_frame_count(target_len)
+        num_frames = align_frames(target_len)
         if clip_frames is not None:
             clip_frames, _ = prepare_segment_clip(clip_frames, num_frames)
 
@@ -784,8 +799,8 @@ def execute_director_plan_core(
         ctx_h = int(plan.height)
         if clip_frames is not None and clip_frames.shape[0] > 0:
             ctx_h, ctx_w = int(clip_frames.shape[1]), int(clip_frames.shape[2])
-        # H3 patchify requires W/H multiples of 32 (VAE÷16 then 2×2).
-        assert_minimax_canvas(ctx_w, ctx_h)
+        # Model canvas grid (H3: 32 = VAE÷16 then 2×2 patchify).
+        assert_canvas(ctx_w, ctx_h)
 
         report_director_progress(
             progress_node_id, segment_index=progress_index, segment_total=seg_total,
@@ -869,7 +884,7 @@ def execute_director_plan_core(
         ) and audio_vae is None:
             raise ValueError("r2v/v2v/rv2v / reference conditioning requires audio_vae input.")
 
-        # Always build via official MiniMaxH3ImageToVideo / ReferenceToVideo.
+        # Always build via the active model's conditioning path.
         t_cond = time.perf_counter()
         positive, negative, latent, task_hint = run_minimax_conditioning(
             clip=clip,
@@ -907,7 +922,7 @@ def execute_director_plan_core(
             )
             prev_av = select_continuity_pin_latent(latent, prev_first_pass_av, prev_av)
             if is_continue_mode(plan):
-                from .h3_latent_continue import (
+                from .models.h3.latent_continue import (
                     apply_latent_continue,
                     install_continue_prefix_remask,
                 )
@@ -1286,7 +1301,7 @@ def execute_director_plan_core(
                         progress_node_id, segment_index=progress_index, segment_total=seg_total,
                         phase="decode", phase_value=0, phase_max=1, **meta,
                     )
-                    first_pass_gpu, _ = _decode_av_latent(
+                    first_pass_gpu, _ = _decode_latent(
                         samples, vae, audio_vae, decode_audio=False,
                     )
                     pre_export = first_pass_gpu.detach().cpu().float()
@@ -1349,7 +1364,7 @@ def execute_director_plan_core(
                     progress_node_id, segment_index=progress_index, segment_total=seg_total,
                     phase="decode", phase_value=0, phase_max=1, **meta,
                 )
-                decoded_p, audio_p = _decode_av_latent(
+                decoded_p, audio_p = _decode_latent(
                     latent, vae, audio_vae, decode_audio=decode_audio,
                 )
                 decoded_p, audio_p = _trim_decoded_to_export(
@@ -1429,7 +1444,7 @@ def execute_director_plan_core(
             phase="decode", phase_value=0, phase_max=1, **meta,
         )
         t_decode = time.perf_counter()
-        decoded, audio_dict = _decode_av_latent(
+        decoded, audio_dict = _decode_latent(
             samples, vae, audio_vae, decode_audio=decode_audio,
         )
         # Default: crop free region back to UI length. 「保完整」keeps sample-trim
@@ -1947,3 +1962,21 @@ def execute_director_plan_core(
         pre_face_combined,
         segment_pre_face,
     )
+
+
+def execute_director_plan_core(plan: DirectorPlan, **kwargs):
+    """Run the plan with the model selected on the plan.
+
+    The thin wrapper exists so every helper below (frame grid, canvas snap,
+    sigma shift, conditioning, decode) sees one consistent model for the whole
+    execution, without threading a parameter through the pipeline.
+    """
+    from .models import get_model, use_model
+
+    vmodel = getattr(plan, "model", None) or get_model(
+        getattr(plan, "model_key", None)
+    )
+    plan.model = vmodel
+    plan.model_key = vmodel.key
+    with use_model(vmodel):
+        return _execute_director_plan_core(plan, **kwargs)

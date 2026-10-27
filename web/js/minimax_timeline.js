@@ -581,6 +581,18 @@ function findDirectorWidget(node, name) {
  * （「性能」这类字符串）并被原样存进 widgets_values(_named)。分组标题不可能
  * 是合法缓存目录名 → 命中就复位成默认值（空），让后端回退用节点 id。
  */
+/** Positional widget restore can drop a neighbour's value into the model_family
+ *  combo (e.g. the BDGROUP "性能" title). Snap it back to a valid choice. */
+function sanitizeDirectorModelFamily(node) {
+    const w = widgetByName(node, "model_family");
+    if (!w) return false;
+    const choices = w.options?.values;
+    if (!Array.isArray(choices) || !choices.length) return false;
+    if (typeof w.value === "string" && choices.includes(w.value)) return false;
+    w.value = choices[0];
+    return true;
+}
+
 function sanitizeDirectorCacheName(node) {
     const w = widgetByName(node, "cache_name");
     if (!w) return false;
@@ -633,7 +645,9 @@ function restoreDirectorWidgetsFromSaved(node, data) {
                 if (!w?.name || w.serialize === false) continue;
                 if (w.name === DIRECTOR_DOM_WIDGET_NAME) continue;
                 if (Object.prototype.hasOwnProperty.call(named, w.name)) continue;
-                const def = w.options?.default;
+                const def = w.options?.default !== undefined
+                    ? w.options.default
+                    : (Array.isArray(w.options?.values) ? w.options.values[0] : undefined);
                 if (def !== undefined) w.value = def;
             }
         } finally {
@@ -664,6 +678,7 @@ function applyDirectorConfigureRestore(node, data) {
     finalizeDirectorWidgetOrder(node);
     const ok = restoreDirectorWidgetsFromSaved(node, data);
     sanitizeDirectorCacheName(node);
+    sanitizeDirectorModelFamily(node);
     return ok;
 }
 

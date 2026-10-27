@@ -96,14 +96,14 @@ def pack_face_refine(
     seed = str(seed_mode or "inherit").strip().lower()
     if seed not in SEED_MODES:
         seed = "inherit"
-    from ...lib.image_prep import ensure_minimax_canvas
+    from ...lib.image_prep import ensure_canvas
     from ..refine_pack import is_refine_sigmas_tensor, parse_refine_sigmas
 
     sigma_tensor = sigmas if is_refine_sigmas_tensor(sigmas) else None
     parsed = (
         parse_refine_sigmas(sigma_tensor, fallback=False) if sigma_tensor is not None else ()
     )
-    canvas_width, canvas_height = ensure_minimax_canvas(
+    canvas_width, canvas_height = ensure_canvas(
         _clamp_int(canvas_width, 128, 1344, 768),
         _clamp_int(canvas_height, 128, 1344, 768),
     )

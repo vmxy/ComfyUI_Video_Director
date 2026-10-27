@@ -2,7 +2,7 @@
 
 Writes the previous sampled MiniMax H3 AV tail into the next empty latent and
 builds a NestedTensor noise mask. Optional per-step prefix remask lives on a
-cloned MODEL after SigmaShift. Does not install h3_context_patches and must
+cloned MODEL after SigmaShift. Does not install context_patches and must
 not be stacked with apply_motion_context.
 """
 
@@ -14,7 +14,7 @@ from typing import Any
 
 import torch
 
-from .h3_motion_context import (
+from .motion_context import (
     DEFAULT_AUDIO_CONTEXT_FRAMES,
     FPS,
     _audio_tail_from_latent,
@@ -28,7 +28,9 @@ from .h3_motion_context import (
     video_from_latent,
 )
 
-log = logging.getLogger("ComfyUI-VideoDirector.h3_latent_continue")
+from ...continuity_utils import clamp_seam_min_mask
+
+log = logging.getLogger("ComfyUI-VideoDirector.models.h3.latent_continue")
 
 CONTINUE_PIPELINE_ID = "minimax_h3_latent_continue_v4"
 PREFIX_STEPS_KEY = "_director_continue_prefix_steps"
@@ -37,21 +39,8 @@ SEAM_TAPER_TOKENS = 4
 # 0 = hard-copy the seam tokens (sampler keeps latent_image). H3 also treats
 # mask=0 as VISUAL_COND_TIMESTEP; that is what「重绘幅度 0」asks for.
 SEAM_MIN_MASK = 0.10
-SEAM_FLOOR_MIN = 0.0
-SEAM_FLOOR_MAX = 0.95
 AUDIO_SOFT_RELEASE_TICKS = 8
 _WRAPPER_KEY = "director_h3_continue_prefix_remask"
-
-
-def clamp_seam_min_mask(value) -> float:
-    """User-facing 重绘幅度. Higher = more redraw / less copy of the previous tail."""
-    try:
-        n = float(value)
-    except (TypeError, ValueError):
-        n = SEAM_MIN_MASK
-    if not math.isfinite(n):
-        n = SEAM_MIN_MASK
-    return max(SEAM_FLOOR_MIN, min(SEAM_FLOOR_MAX, n))
 
 
 def prefix_token_weights(
@@ -190,7 +179,7 @@ def apply_latent_continue(
     n = min(int(context_length), available)
     if n < 1:
         raise ValueError("Director continue: no frames available to write.")
-    from .h3_motion_context import VIDEO_RUN_GRID
+    from .motion_context import VIDEO_RUN_GRID
 
     run = next(g for g in VIDEO_RUN_GRID if g <= n)
     if run != n:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ...lib.image_prep import MINIMAX_CANVAS_STRIDE, ensure_minimax_canvas
+from ...lib.image_prep import MINIMAX_CANVAS_STRIDE, ensure_canvas
 
 VAE_SPATIAL = 16
 
@@ -26,7 +26,7 @@ def lowres_canvas(width: int, height: int, scale: float) -> tuple[int, int]:
         return src_w, src_h
     raw_w = max(MINIMAX_CANVAS_STRIDE, int(round(src_w * scale)))
     raw_h = max(MINIMAX_CANVAS_STRIDE, int(round(src_h * scale)))
-    low_w, low_h = ensure_minimax_canvas(raw_w, raw_h)
+    low_w, low_h = ensure_canvas(raw_w, raw_h)
     low_w = min(low_w, src_w)
     low_h = min(low_h, src_h)
     if low_w >= src_w and low_h >= src_h:

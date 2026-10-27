@@ -18,7 +18,7 @@ from typing import Any
 
 import torch
 
-from ..lib.image_prep import assert_minimax_canvas, fit_canvas, fit_video_long_edge, resolve_output_dimensions
+from ..lib.image_prep import assert_canvas, fit_canvas, fit_video_long_edge, resolve_output_dimensions
 from ..lib.task_prompts import resolve_task_key, task_type_option_label, TASK_PROMPT_BY_KEY
 
 log = logging.getLogger("ComfyUI-VideoDirector.director.fl2v")
@@ -285,11 +285,11 @@ def _build_fl2v_endpoint_source(
     image0 and last frame is image1 (middle held at image0) gives the model a much
     stronger first/last-frame signal — especially on long later shots.
     """
-    from .plan import wan_align_frame_count
+    from .plan import align_frames
 
     if start_img.ndim == 3:
         start_img = start_img.unsqueeze(0)
-    n = wan_align_frame_count(max(MIN_FL2V_FRAMES, int(frame_count)))
+    n = align_frames(max(MIN_FL2V_FRAMES, int(frame_count)))
     # Hold start through the body (i2v-like), snap last frame to end when present.
     clip = start_img[:1].expand(n, -1, -1, -1).contiguous().clone()
     if end_img is not None:
@@ -587,7 +587,7 @@ def build_fl2v_director_plan(
         fixed_width=int(output_block.get("width") or timeline.get("width") or width),
         fixed_height=int(output_block.get("height") or timeline.get("height") or height),
     )
-    assert_minimax_canvas(out_w, out_h)
+    assert_canvas(out_w, out_h)
 
     export_mode = _resolve_export_mode(output_block)
     fallback_prompt = (global_block.get("prompt") or global_prompt or "").strip()

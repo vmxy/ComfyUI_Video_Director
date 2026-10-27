@@ -1,9 +1,19 @@
-"""MiniMax H3 conditioning — delegates to ComfyUI official MiniMaxH3 nodes."""
+"""VideoDirector conditioning nodes — delegate to the selected video model.
+
+The model family is chosen with the ``model_family`` widget. The H3 model
+wraps ComfyUI's official MiniMax H3 nodes; new families register themselves in
+:mod:`director.models` and reuse the same nodes.
+"""
 
 from __future__ import annotations
 
+from ..director.models import (
+    active_model,
+    model_choices,
+    default_model_choice,
+    get_model,
+)
 from ..lib.ref_images import MAX_REFERENCE_IMAGES, REF_IMAGE_KEY_PREFIX, flatten_reference_kwargs
-from ..lib.task_modes import TASK_DESCRIPTIONS, MiniMaxH3Task, infer_task
 
 
 def _shared_optional_inputs() -> dict:
@@ -22,7 +32,7 @@ def _shared_optional_inputs() -> dict:
                 {
                     "tooltip": (
                         f"Reference image for <Picture {index + 1}> in prompt (r2v). "
-                        "Native aspect; H3 ref_image_size applies at encode time."
+                        "Native aspect; the model's ref_image_size applies at encode time."
                     ),
                 },
             )
@@ -32,35 +42,20 @@ def _shared_optional_inputs() -> dict:
             ["match", "max"],
             {
                 "default": "match",
-                "tooltip": "Reference image sizing for MiniMaxH3ReferenceToVideo.",
+                "tooltip": "Reference image sizing for reference-to-video models.",
+            },
+        ),
+        "model_family": (
+            model_choices(),
+            {
+                "default": default_model_choice(),
+                "tooltip": (
+                    "模型族：决定条件编码 / 帧对齐 / 采样前置 / latent 解码走哪个模型。"
+                    "MiniMax H3 为默认模型；其它模型通过 director/models 注册。"
+                ),
             },
         ),
     }
-
-
-def _load_minimax_nodes():
-    try:
-        from comfy_extras.nodes_minimax_h3 import (
-            MiniMaxH3ImageToVideo,
-            MiniMaxH3ReferenceToVideo,
-        )
-    except ImportError as exc:
-        raise RuntimeError(
-            "VideoDirector requires ComfyUI official MiniMax H3 nodes "
-            "(comfy_extras.nodes_minimax_h3). Upgrade to ComfyUI with PR #15224 merged."
-        ) from exc
-    return MiniMaxH3ImageToVideo, MiniMaxH3ReferenceToVideo
-
-
-def _unpack_positive_latent(out):
-    args = None
-    if hasattr(out, "args"):
-        args = out.args
-    elif isinstance(out, (tuple, list)):
-        args = out
-    if args and len(args) >= 2:
-        return args[0], args[1]
-    raise RuntimeError(f"MiniMax H3 conditioning returned unexpected output: {type(out)!r}")
 
 
 def _reference_images_dict_from_kwargs(kwargs: dict) -> dict | None:
@@ -77,32 +72,6 @@ def _reference_images_dict_from_kwargs(kwargs: dict) -> dict | None:
         idx = key.removeprefix(REF_IMAGE_KEY_PREFIX)
         out[f"ref_image_{idx}"] = value
     return out or None
-
-
-def _reference_videos_dict(ref_videos: dict | None) -> dict | None:
-    if not ref_videos:
-        return None
-    out = {k: v for k, v in ref_videos.items() if v is not None}
-    return out or None
-
-
-def _task_hint(task_key: str, ref_images, ref_videos, first_frame=None, last_frame=None) -> str:
-    ref_image_count = len(ref_images or {})
-    ref_video_count = len(ref_videos or {})
-    mode = infer_task(ref_image_count, ref_video_count)
-    if mode == MiniMaxH3Task.T2V:
-        # Keyframe path: report what was actually locked, not "no keyframes".
-        if last_frame is not None:
-            mode = MiniMaxH3Task.FL2V
-        elif first_frame is not None:
-            mode = MiniMaxH3Task.I2V
-    desc = TASK_DESCRIPTIONS[mode]
-    if mode == MiniMaxH3Task.FL2V and first_frame is None:
-        desc = "Last keyframe AV"
-    hint = f"{task_key or mode.value} — {desc} (MiniMax H3)"
-    if ref_image_count or ref_video_count:
-        hint += f" (~{ref_image_count} ref image(s), {ref_video_count} ref video(s))"
-    return hint
 
 
 def run_minimax_conditioning(
@@ -122,61 +91,48 @@ def run_minimax_conditioning(
     ref_video_audios=None,
     ref_audios=None,
     ref_image_size: str = "match",
+    negative_prompt: str = "",
+    vmodel=None,
     **kwargs,
 ):
-    """Build positive conditioning + AV latent via official MiniMax H3 nodes."""
-    MiniMaxH3ImageToVideo, MiniMaxH3ReferenceToVideo = _load_minimax_nodes()
+    """Build positive conditioning + latent through the active video model.
 
+    The function name is kept for compatibility with the H3-only releases; the
+    implementation is now model-driven.
+    """
+    vmodel = vmodel or active_model()
     ref_images = ref_images or _reference_images_dict_from_kwargs(kwargs)
-    ref_videos = _reference_videos_dict(ref_videos)
+    ref_videos = {k: v for k, v in (ref_videos or {}).items() if v is not None} or None
 
-    use_reference = (
-        task_key in {"r2v", "v2v", "rv2v"}
-        or ref_images
-        or ref_videos
-        or ref_audios
-        or ref_video_audios
+    result = vmodel.build_conditioning(
+        clip=clip,
+        vae=vae,
+        audio_vae=audio_vae,
+        prompt=prompt,
+        width=width,
+        height=height,
+        length=length,
+        task_key=task_key,
+        first_frame=first_frame,
+        last_frame=last_frame,
+        ref_images=ref_images,
+        ref_videos=ref_videos,
+        ref_video_audios=ref_video_audios,
+        ref_audios=ref_audios,
+        ref_image_size=ref_image_size,
+        negative_prompt=negative_prompt,
     )
+    return result.positive, list(result.negative or []), result.latent, result.task_hint
 
-    if use_reference:
-        if audio_vae is None:
-            raise ValueError("MiniMax H3 r2v/v2v/rv2v / reference conditioning requires audio_vae.")
-        # Keyword args: official execute() moved vae/audio_vae after
-        # ref_image_size. Positional calls send prompt into height
-        # (`TypeError: ... for //: 'str' and 'int'` in _empty_av_latent).
-        out = MiniMaxH3ReferenceToVideo.execute(
-            clip=clip,
-            prompt=prompt,
-            width=width,
-            height=height,
-            length=length,
-            ref_image_size=ref_image_size,
-            vae=vae,
-            audio_vae=audio_vae,
-            ref_images=ref_images,
-            ref_videos=ref_videos,
-            ref_video_audios=ref_video_audios,
-            ref_audios=ref_audios,
-        )
-    else:
-        out = MiniMaxH3ImageToVideo.execute(
-            clip=clip,
-            vae=vae,
-            prompt=prompt,
-            width=width,
-            height=height,
-            length=length,
-            first_frame=first_frame,
-            last_frame=last_frame,
-        )
 
-    positive, latent = _unpack_positive_latent(out)
-    hint = _task_hint(task_key, ref_images, ref_videos, first_frame, last_frame)
-    return positive, [], latent, hint
+def _task_key_for(kwargs: dict) -> str:
+    return "r2v" if kwargs.get("ref_images") or any(
+        k.startswith(REF_IMAGE_KEY_PREFIX) for k in kwargs
+    ) else "t2v"
 
 
 class MiniMaxH3DirectorConditioning:
-    """Thin wrapper around official MiniMax H3 conditioning (positive + latent)."""
+    """Thin wrapper around the model conditioning path (positive + latent)."""
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -200,7 +156,7 @@ class MiniMaxH3DirectorConditioning:
     FUNCTION = "apply"
     CATEGORY = "MiniMaxH3"
 
-    def apply(self, clip, vae, prompt, width, height, length, audio_vae=None, **kwargs):
+    def apply(self, clip, vae, prompt, width, height, length, audio_vae=None, model_family=None, **kwargs):
         positive, _, latent, _ = run_minimax_conditioning(
             clip=clip,
             vae=vae,
@@ -209,28 +165,26 @@ class MiniMaxH3DirectorConditioning:
             width=width,
             height=height,
             length=length,
-            task_key="r2v" if kwargs.get("ref_images") or any(
-                k.startswith(REF_IMAGE_KEY_PREFIX) for k in kwargs
-            ) else "t2v",
+            task_key=_task_key_for(kwargs),
+            vmodel=get_model(model_family),
             **kwargs,
         )
         return positive, latent
 
 
 class MiniMaxH3DirectorPlannerConditioning:
-    """Official MiniMax H3 conditioning plus task_mode string for planning UIs."""
+    """Model conditioning plus a task_mode string for planning UIs."""
 
     @classmethod
     def INPUT_TYPES(cls):
-        base = MiniMaxH3DirectorConditioning.INPUT_TYPES()
-        return base
+        return MiniMaxH3DirectorConditioning.INPUT_TYPES()
 
     RETURN_TYPES = ("CONDITIONING", "LATENT", "STRING")
     RETURN_NAMES = ("positive", "latent", "task_mode")
     FUNCTION = "apply"
     CATEGORY = "MiniMaxH3"
 
-    def apply(self, clip, vae, prompt, width, height, length, audio_vae=None, **kwargs):
+    def apply(self, clip, vae, prompt, width, height, length, audio_vae=None, model_family=None, **kwargs):
         positive, _, latent, hint = run_minimax_conditioning(
             clip=clip,
             vae=vae,
@@ -239,9 +193,8 @@ class MiniMaxH3DirectorPlannerConditioning:
             width=width,
             height=height,
             length=length,
-            task_key="r2v" if kwargs.get("ref_images") or any(
-                k.startswith(REF_IMAGE_KEY_PREFIX) for k in kwargs
-            ) else "t2v",
+            task_key=_task_key_for(kwargs),
+            vmodel=get_model(model_family),
             **kwargs,
         )
         return positive, latent, hint

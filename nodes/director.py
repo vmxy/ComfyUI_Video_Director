@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import comfy.samplers
 
+from ..director.models import model_choices, default_model_choice
 from ..director.executor_core import execute_director_plan_core
 from .director_common import (
     finalize_director_outputs,
@@ -61,7 +62,7 @@ class MiniMaxH3Director:
                 ),
                 "audio_vae": (
                     "VAE",
-                    {"tooltip": "MiniMax H3 audio VAE (minimax_h3_audio_vae). Required for r2v / v2v / rv2v."},
+                    {"tooltip": "MiniMax H3 audio VAE (minimax_h3_audio_vae). Required for r2v / v2v / rv2v. 纯视频模型会忽略此输入。"},
                 ),
                 "clip": (
                     "CLIP",
@@ -172,13 +173,24 @@ class MiniMaxH3Director:
                 ),
                 "shift_video": (
                     "FLOAT",
-                    {"default": 12.0, "min": 0.01, "max": 100.0, "step": 0.01, "tooltip": "MiniMaxH3SigmaShift shift_video."},
+                    {"default": 12.0, "min": 0.01, "max": 100.0, "step": 0.01, "tooltip": "模型 sigma shift — 视频。MiniMax H3 默认 12；不支持 shift 的模型会忽略。"},
                 ),
                 "shift_audio": (
                     "FLOAT",
-                    {"default": 3.0, "min": 0.01, "max": 100.0, "step": 0.01, "tooltip": "MiniMaxH3SigmaShift shift_audio."},
+                    {"default": 3.0, "min": 0.01, "max": 100.0, "step": 0.01, "tooltip": "模型 sigma shift — 音频。MiniMax H3 默认 3；不支持 shift 的模型会忽略。"},
                 ),
                 **director_perf_inputs(),
+                "model_family": (
+                    model_choices(),
+                    {
+                        "default": default_model_choice(),
+                        "tooltip": (
+                            "模型族：决定条件编码、帧对齐、采样前置与 latent 解码走哪个模型。"
+                            "默认 MiniMax H3；在 director/models 注册新模型后会自动出现在这里。"
+                            "模型不支持的可选功能（SelfLift / 语义桥 / 脸修等）接线时会直接报错。"
+                        ),
+                    },
+                ),
                 "sigmas": (
                     "SIGMAS",
                     {
@@ -263,8 +275,9 @@ class MiniMaxH3Director:
     FUNCTION = "execute"
     CATEGORY = _CATEGORY
     DESCRIPTION = (
-        "VideoDirector: MiniMaxH3ImageToVideo / ReferenceToVideo conditioning, "
-        "single-stage KSampler + MiniMaxH3SigmaShift, LTXVSeparateAVLatent decode. "
+        "VideoDirector: model-family architecture (MiniMax H3 built in; LTX-2 / Wan "
+        "models plug in via director/models). H3 path uses MiniMaxH3ImageToVideo / "
+        "ReferenceToVideo conditioning, MiniMaxH3SigmaShift and AV-latent decode. "
         "Supports t2v / i2v / fl2v / r2v / v2v / rv2v. "
         "Optional i2v_groups / r2v_groups accept multi-group packs from Director Group nodes "
         "(external priority over UI cards). Optional semantic_bridge accepts "
@@ -275,7 +288,7 @@ class MiniMaxH3Director:
         "(crop / re-sample / stitch). images_pre_refine is the first-pass video before refine. "
         "images_pre_face_refine is the video before face stitch "
         "(blocked unless FaceRefine is connected and「输出修脸前」is on). "
-        "Defaults: 0.4MP 16:9 (864×480), 5s / 124 frames @ 24 fps."
+        "Model family is selected with the model_family widget (MiniMax H3 default; register LTX-2 / Wan models in director/models). Defaults: 0.4MP 16:9 (864×480), 5s / 124 frames @ 24 fps."
     )
 
     def execute(
@@ -299,6 +312,7 @@ class MiniMaxH3Director:
         selflift=None,
         refine=None,
         face_refine=None,
+        model_family=None,
         sigmas=None,
         steps=25,
         sampler="res_multistep",
@@ -334,6 +348,7 @@ class MiniMaxH3Director:
             selflift=selflift,
             refine=refine,
             face_refine=face_refine,
+            model_family=model_family,
         )
         codec = str(cache_frames_codec or "raw").strip().lower()
         plan.cache_frames_codec = "ffv1" if codec == "ffv1" else "raw"

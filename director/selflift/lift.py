@@ -7,8 +7,8 @@ import logging
 import torch
 import torch.nn.functional as F
 
-from ..h3_latent_upscale import upscale_h3_video_latent
-from ..h3_motion_context import _repack_av_streams, _streams_from_latent
+from ..models.h3.latent_upscale import upscale_h3_video_latent
+from ..models.h3.motion_context import _repack_av_streams, _streams_from_latent
 from .cond import interpolate_video_5d, resize_av_video
 from .grid import pixel_to_latent_hw
 

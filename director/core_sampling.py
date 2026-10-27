@@ -76,26 +76,28 @@ def _use_basic_guider(cfg: float, negative) -> bool:
 
 
 class ShiftedModelCache:
-    """Reuse one MiniMaxH3SigmaShift clone per parent MODEL for the whole execute.
+    """Reuse one prepared MODEL clone per parent MODEL for the whole execute.
 
-    Official SigmaShift always ``model.clone()``. Dropping that clone after each
+    H3's SigmaShift always ``model.clone()``. Dropping that clone after each
     segment leaves a dead LoadedModel (shared MiniMaxH3 still held by the graph
     MODEL) that ``free_memory`` skips. Keeping the clone alive lets segment
     cleanup unload it, then the next segment reloads the same patcher.
     """
 
     def __init__(self) -> None:
-        self._items: dict[tuple[int, float, float], Any] = {}
+        self._items: dict[tuple[str, int, float, float], Any] = {}
 
     def get(self, model, shift_video: float, shift_audio: float):
-        key = (id(model), float(shift_video), float(shift_audio))
+        from .models import active_model
+
+        vmodel = active_model()
+        key = (vmodel.key, id(model), float(shift_video), float(shift_audio))
         hit = self._items.get(key)
         if hit is not None:
             return hit
-        from comfy_extras.nodes_minimax_h3 import MiniMaxH3SigmaShift
-
-        shifted = MiniMaxH3SigmaShift.execute(model, float(shift_video), float(shift_audio))
-        model_use = _unpack_node_output(shifted)[0]
+        model_use = vmodel.shift_model(
+            model, shift_video=float(shift_video), shift_audio=float(shift_audio)
+        )
         self._items[key] = model_use
         return model_use
 
@@ -144,7 +146,10 @@ def sample_single_stage(
         RandomNoise,
         SamplerCustomAdvanced,
     )
-    from comfy_extras.nodes_minimax_h3 import MiniMaxH3SigmaShift
+
+    from .models import active_model
+
+    vmodel = active_model()
 
     def notify(phase: str, value: float) -> None:
         if on_phase:
@@ -152,12 +157,13 @@ def sample_single_stage(
 
     notify(phase_name, 0)
     model_use = model
-    if apply_shift:
+    if apply_shift and getattr(vmodel, "uses_sigma_shift", False):
         if shift_cache is not None:
             model_use = shift_cache.get(model, shift_video, shift_audio)
         else:
-            shifted = MiniMaxH3SigmaShift.execute(model, float(shift_video), float(shift_audio))
-            model_use = _unpack_node_output(shifted)[0]
+            model_use = vmodel.shift_model(
+                model, shift_video=float(shift_video), shift_audio=float(shift_audio)
+            )
 
     if sigmas is not None:
         if torch.is_tensor(sigmas):
@@ -249,7 +255,7 @@ def sample_single_stage(
             restore_tiles()
         if callable(after_shift):
             try:
-                from .h3_latent_continue import uninstall_continue_prefix_remask
+                from .models.h3.latent_continue import uninstall_continue_prefix_remask
 
                 uninstall_continue_prefix_remask(model_use)
             except Exception as exc:

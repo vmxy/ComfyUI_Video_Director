@@ -6,31 +6,46 @@ import torch
 from comfy.utils import common_upscale
 
 
-# MiniMax H3: VAE spatial ÷16, then 2×2 patchify → canvas must be multiples of 32.
-MINIMAX_CANVAS_STRIDE = 32
+# Backwards-compatible constant for H3-only feature modules (SelfLift / Refine).
+DEFAULT_CANVAS_STRIDE = 32
+MINIMAX_CANVAS_STRIDE = DEFAULT_CANVAS_STRIDE
 
 
-def snap_dimension(value: int, stride: int = MINIMAX_CANVAS_STRIDE) -> int:
+def _active_stride() -> int:
+    """Canvas stride of the active video model (falls back to 32)."""
+    try:
+        from ..director.models import active_model
+
+        return max(1, int(active_model().canvas_stride))
+    except Exception:
+        return DEFAULT_CANVAS_STRIDE
+
+
+def snap_dimension(value: int, stride: int | None = None) -> int:
     """Round *value* to the nearest multiple of *stride*, keeping at least *stride*."""
+    stride = int(stride or _active_stride())
     return max(stride, round(value / stride) * stride)
 
 
-def ensure_minimax_canvas(width: int, height: int) -> tuple[int, int]:
-    """Snap width/height to MiniMax H3 canvas multiples (32)."""
-    return snap_dimension(int(width)), snap_dimension(int(height))
+def ensure_canvas(width: int, height: int, *, stride: int | None = None) -> tuple[int, int]:
+    """Snap width/height to the active model's canvas multiples."""
+    return snap_dimension(int(width), stride), snap_dimension(int(height), stride)
+
+
+def assert_canvas(width: int, height: int) -> None:
+    """Raise a clear error when W/H does not fit the active model canvas."""
+    from ..director.models import active_model
+
+    active_model().validate_canvas(int(width), int(height))
+
+
+# Legacy names kept for old workflows / third-party imports.
+def ensure_minimax_canvas(width: int, height: int, *, stride: int | None = None) -> tuple[int, int]:
+    return ensure_canvas(width, height, stride=stride)
 
 
 def assert_minimax_canvas(width: int, height: int) -> None:
-    """Raise a clear error when W/H cannot be patchified by MiniMax H3."""
-    w, h = int(width), int(height)
-    if w > 0 and h > 0 and w % MINIMAX_CANVAS_STRIDE == 0 and h % MINIMAX_CANVAS_STRIDE == 0:
-        return
-    nw, nh = ensure_minimax_canvas(max(w, 1), max(h, 1))
-    raise ValueError(
-        f"输出分辨率 {w}×{h} 不是 32 的倍数（MiniMax H3 要求：VAE÷16 后再 2×2 patch）。"
-        f"请改为 {nw}×{nh}，或在输出面板重新选择最长边/固定尺寸后重跑。"
-        "若同时安装了独立的 ComfyUI-H3-Motion-Context，请卸载或禁用后重启 ComfyUI（与 Director 内置连贯冲突）。"
-    )
+    assert_canvas(width, height)
 
 
 def fit_edge_limit(
@@ -82,12 +97,13 @@ def limit_ref_image_dict(
     return out or None, changed
 
 
-def fit_long_edge(image: torch.Tensor, max_edge: int, stride: int = 32) -> torch.Tensor:
-    """Long-edge fit with MiniMax H3 canvas snap (default stride 32).
+def fit_long_edge(image: torch.Tensor, max_edge: int, stride: int | None = None) -> torch.Tensor:
+    """Long-edge fit with the active model canvas snap (H3 default stride 32).
 
     H3 VAE is 16× spatially, then patchified 2×2 → effective 32×. Odd latent
     widths (e.g. 496px → 31) crash ``patchify_video`` during sampling.
     """
+    stride = int(stride or _active_stride())
     rgb = image[:, :, :, :3]
     height, width = rgb.shape[1], rgb.shape[2]
     scale = min(max_edge / max(height, width), 1.0)
@@ -111,7 +127,7 @@ def fit_canvas(
     ).movedim(1, -1)
 
 
-def fit_video_long_edge(frames: torch.Tensor, max_edge: int, stride: int = 32) -> torch.Tensor:
+def fit_video_long_edge(frames: torch.Tensor, max_edge: int, stride: int | None = None) -> torch.Tensor:
     """Scale each frame so its long side is at most *max_edge*, preserving aspect ratio."""
     if frames.shape[0] == 0:
         return frames
@@ -164,13 +180,14 @@ def resolve_output_dimensions(
     long_edge: int = 848,
     fixed_width: int = 832,
     fixed_height: int = 480,
-    stride: int = 32,
+    stride: int | None = None,
 ) -> tuple[int, int, int, str]:
     """Return (width, height, ref_max_size, mode) for VideoDirector output.
 
     ``stride`` defaults to 32 (H3 patch grid). Using 16 can yield e.g. 496×864
     which encodes to an odd latent width and crashes ``patchify_video``.
     """
+    stride = int(stride or _active_stride())
     mode = (mode or "long_edge").lower()
     if mode == "fixed":
         w = snap_dimension(int(fixed_width), stride)

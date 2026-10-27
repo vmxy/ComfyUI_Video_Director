@@ -22,7 +22,7 @@ from ..lib.audio_io import load_reference_audio
 from ..lib.ref_audios import MAX_REFERENCE_AUDIOS, ref_audios_dict
 from ..lib.ref_images import MAX_REFERENCE_IMAGES, REF_IMAGE_KEY_PREFIX
 from ..lib.ref_videos import MAX_REFERENCE_VIDEOS, ref_videos_dict
-from ..lib.image_prep import assert_minimax_canvas, resolve_output_dimensions
+from ..lib.image_prep import assert_canvas, resolve_output_dimensions
 from ..lib.task_prompts import get_task_prompt_spec, resolve_task_key
 from .segment_loras import normalize_lora_rows
 from ..lib.video_io import (
@@ -315,6 +315,12 @@ class DirectorPlan:
     external_groups_witness: dict | None = None
     # Set during execute when export_mode=segments (videodirector_seg_export folder).
     segment_mp4_run_dir: str | None = None
+    # Model family resolved from the Director ``model_family`` widget. ``model``
+    # is the live VideoModel instance used for conditioning / decode / geometry.
+    model_key: str = ""
+    model: object | None = field(default=None, repr=False)
+    # Non-fatal capability notes (e.g. continuity auto-disabled).
+    model_warnings: list[str] = field(default_factory=list)
 
     @property
     def segment_count(self) -> int:
@@ -349,7 +355,7 @@ def _resolve_global_reference_video(timeline: dict) -> dict:
     return dict(legacy) if isinstance(legacy, dict) else {}
 
 
-from .frame_align import minimax_align_frame_count as wan_align_frame_count
+from .frame_align import align_frames
 
 
 def _decode_image_b64(b64_str: str) -> torch.Tensor:
@@ -872,7 +878,7 @@ def build_director_plan(
         fixed_width=int(output_block.get("width") or timeline.get("width") or width),
         fixed_height=int(output_block.get("height") or timeline.get("height") or height),
     )
-    assert_minimax_canvas(out_w, out_h)
+    assert_canvas(out_w, out_h)
 
     total = int(load_timeline.get("totalFrames") or export_total or total_frames or 0)
     if total <= 0:
@@ -1006,7 +1012,7 @@ def prepare_segment_clip(clip: torch.Tensor, target_frames: int) -> tuple[torch.
     actual = clip.shape[0]
     if actual <= 0:
         raise ValueError("Segment has no frames.")
-    num_frames = wan_align_frame_count(max(actual, target_frames))
+    num_frames = align_frames(max(actual, target_frames))
     if actual > num_frames:
         clip = clip[:num_frames]
     return clip, num_frames

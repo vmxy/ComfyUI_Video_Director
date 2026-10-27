@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..h3_latent_upscale import list_h3_latent_upscale_models
+from ..models.h3.latent_upscale import list_h3_latent_upscale_models
 from ..refine_pack import (
     DEFAULT_SPATIAL_TILES,
     DEFAULT_TILE_OVERLAP,

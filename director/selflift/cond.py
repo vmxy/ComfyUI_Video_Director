@@ -10,7 +10,7 @@ from typing import Any
 import torch
 import torch.nn.functional as F
 
-from ..h3_motion_context import _repack_av_streams, _streams_from_latent
+from ..models.h3.motion_context import _repack_av_streams, _streams_from_latent
 
 log = logging.getLogger("ComfyUI-VideoDirector.selflift.cond")
 

@@ -8,8 +8,8 @@ from typing import Any, Callable
 import torch
 
 from ..core_sampling import ShiftedModelCache, sample_single_stage
-from ..h3_latent_continue import PREFIX_STEPS_KEY
-from ..h3_motion_context import _repack_av_streams, av_pixel_size
+from ..models.h3.latent_continue import PREFIX_STEPS_KEY
+from ..models.h3.motion_context import _repack_av_streams, av_pixel_size
 from .carry import (
     copy_low_tail,
     lock_prefix_keep_mask,
@@ -300,7 +300,8 @@ def sample_selflift_stage(
         sigma_t = _sigma_vec(sigmas)
     else:
         from comfy_extras.nodes_custom_sampler import BasicScheduler
-        from comfy_extras.nodes_minimax_h3 import MiniMaxH3SigmaShift
+
+        from ..models import active_model
 
         def _unpack(out):
             if hasattr(out, "args") and out.args:
@@ -311,9 +312,9 @@ def sample_selflift_stage(
 
         sched_model = shifted_hi
         if shift_cache is None:
-            sched_model = _unpack(
-                MiniMaxH3SigmaShift.execute(high_model, float(shift_video), float(shift_audio))
-            )[0]
+            sched_model = active_model().shift_model(
+                high_model, shift_video=float(shift_video), shift_audio=float(shift_audio)
+            )
             shifted_hi = sched_model
         sigma_out = BasicScheduler.execute(sched_model, str(scheduler), int(steps), 1.0)
         sigma_t = _sigma_vec(_unpack(sigma_out)[0])

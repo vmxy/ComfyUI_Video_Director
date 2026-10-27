@@ -12,14 +12,14 @@ from typing import Any
 
 import torch
 
-from .h3_context_patches import (
+from .context_patches import (
     CTX_AUDIO_END_KEY,
     CTX_FRAME_KEY,
     ensure_layout_patch,
     ensure_payload_patch,
 )
 
-log = logging.getLogger("ComfyUI-VideoDirector.h3_motion_context")
+log = logging.getLogger("ComfyUI-VideoDirector.models.h3.motion_context")
 
 FPS = 24.0
 AUDIO_HZ = 40.0
@@ -681,119 +681,3 @@ def apply_motion_context(
         )
 
     return out, int(span), int(prev_export_trim_tail)
-
-
-def trim_context_prefix(
-    images: torch.Tensor,
-    audio: dict | None,
-    trim_frames: int,
-    *,
-    fps: float = FPS,
-    match_tail: bool = True,
-) -> tuple[torch.Tensor, dict | None]:
-    """Remove pinned head from decoded images/audio; optionally match audio duration."""
-    trim = max(0, int(trim_frames))
-    if trim > 0:
-        if int(images.shape[0]) <= trim:
-            raise ValueError(
-                f"Director continuity: cannot trim {trim} frames from "
-                f"{int(images.shape[0])}-frame decode."
-            )
-        images = images[trim:]
-    if not isinstance(audio, dict) or audio.get("waveform") is None:
-        return images, audio
-    waveform = audio["waveform"]
-    sr = int(audio.get("sample_rate") or 32000)
-    drop = int(round((trim / float(fps)) * sr)) if trim > 0 else 0
-    if drop > 0 and int(waveform.shape[-1]) > drop:
-        waveform = waveform[..., drop:]
-    if match_tail:
-        want = int(round((int(images.shape[0]) / float(fps)) * sr))
-        if int(waveform.shape[-1]) > want:
-            waveform = waveform[..., :want]
-    return images, {"waveform": waveform, "sample_rate": sr}
-
-
-def trim_export_tail(
-    images: torch.Tensor,
-    audio: dict | None,
-    trim_frames: int,
-    *,
-    fps: float = FPS,
-) -> tuple[torch.Tensor, dict | None]:
-    """Drop trailing frames from a previous export so it ends at the pin window."""
-    trim = max(0, int(trim_frames))
-    if trim <= 0:
-        return images, audio
-    keep = int(images.shape[0]) - trim
-    if keep < 1:
-        raise ValueError(
-            f"Director continuity: cannot drop {trim} tail frames from "
-            f"{int(images.shape[0])}-frame export."
-        )
-    images = images[:keep]
-    if not isinstance(audio, dict) or audio.get("waveform") is None:
-        return images, audio
-    waveform = audio["waveform"]
-    sr = int(audio.get("sample_rate") or 32000)
-    want = int(round((keep / float(fps)) * sr))
-    if int(waveform.shape[-1]) > want:
-        waveform = waveform[..., :want]
-    return images, {"waveform": waveform, "sample_rate": sr}
-
-
-def generation_frame_budget(visible_frames: int, context_frames: int) -> tuple[int, int]:
-    """Return ``(sample_length, trim_frames)`` for Director continuity.
-
-    Director contract: UI segment duration == exported frames.
-
-    Standalone Motion Context sets ``length`` to the sample and delivers
-    ``length - context`` (shorter than the UI seconds). That produced the
-    27s-vs-30s result. Here we instead:
-
-    1. ``sample = align(visible + context)`` so the pin fits in the head
-    2. Trim ``context`` frames after decode
-    3. Keep exactly ``visible`` frames for export
-    4. Next pin uses ``context_end_frame = trim + visible`` (not the sample
-       absolute end, which includes align overshoot beyond the export)
-    5. If phase-align places the pin a few frames before that export end,
-       drop those frames from the previous export before concat (v7)
-    """
-    from .frame_align import minimax_align_frame_count
-
-    visible = minimax_align_frame_count(max(5, int(visible_frames)))
-    ctx = snap_context_frames(context_frames) if context_frames else 0
-    if ctx <= 0:
-        return visible, 0
-    sample = minimax_align_frame_count(visible + ctx)
-    if ctx >= sample:
-        raise ValueError(
-            f"Director continuity: context {ctx}f must be smaller than sample "
-            f"length {sample}f."
-        )
-    return sample, ctx
-
-
-def continuity_export_len(
-    *,
-    trim_frames: int,
-    sample_len: int,
-    visible_frames: int,
-    target_len: int,
-    keep_tail: bool,
-) -> int:
-    """Frames to keep after dropping the pinned head.
-
-    Default crops the free region back to the UI visible length. ``keep_tail``
-    keeps ``sample - trim`` (the 17k+5 remainder, typically 12 frames).
-    """
-    if int(trim_frames) <= 0:
-        return int(target_len)
-    if keep_tail:
-        return max(1, int(sample_len) - int(trim_frames))
-    return int(visible_frames)
-
-
-def handoff_end_frame(*, trim_frames: int, export_frames: int) -> int:
-    """Sample-timeline pixel index where the exported segment ends (exclusive)."""
-    return max(0, int(trim_frames)) + max(0, int(export_frames))

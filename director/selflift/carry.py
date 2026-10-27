@@ -6,8 +6,8 @@ import logging
 
 import torch
 
-from ..h3_latent_continue import CONTINUE_SEAM_KEY, PREFIX_STEPS_KEY
-from ..h3_motion_context import (
+from ..models.h3.latent_continue import CONTINUE_SEAM_KEY, PREFIX_STEPS_KEY
+from ..models.h3.motion_context import (
     AUDIO_HZ,
     FPS,
     _repack_av_streams,

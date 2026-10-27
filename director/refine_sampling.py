@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 import torch
 
-from ..lib.image_prep import ensure_minimax_canvas
+from ..lib.image_prep import ensure_canvas
 from .core_sampling import sample_single_stage
 from .refine_pack import (
     DEFAULT_UPSCALE_MEGAPIXELS,
@@ -267,7 +267,7 @@ def upscale_image_batch(
     upscale_method: str = "lanczos",
     on_phase=None,
 ) -> torch.Tensor:
-    width, height = ensure_minimax_canvas(width, height)
+    width, height = ensure_canvas(width, height)
     method = str(upscale_method or "lanczos").strip().lower()
     n = int(images.shape[0])
     pbar = _make_upscale_pbar(n)
@@ -420,7 +420,7 @@ def _overwrite_endpoint_keyframes(positive, first_lat, last_lat, last_pixel: int
     """Replace stock first/last keyframe latents; do not touch continuity pins."""
     import copy
 
-    from .h3_context_patches import CTX_FRAME_KEY
+    from .models.h3.context_patches import CTX_FRAME_KEY
 
     if first_lat is None and last_lat is None:
         return positive
@@ -572,7 +572,7 @@ def _refresh_refine_endpoints(
     last_lat = _encode_lock_frame(vae, last_img, tw, th) if last_img is not None else None
     last_pixel = -1
     try:
-        from .h3_motion_context import pixel_frames_for_latent_t
+        from .models.h3.motion_context import pixel_frames_for_latent_t
 
         video_latent, _audio = _split_av(work)
         samples = video_latent.get("samples") if isinstance(video_latent, dict) else video_latent
@@ -629,7 +629,7 @@ def _apply_h3_latent_upscale(
     prev_refine_av=None,
     prev_end_frame: int | None = None,
 ) -> tuple[dict, Any, list[str]]:
-    from .h3_latent_upscale import upscale_h3_video_latent
+    from .models.h3.latent_upscale import upscale_h3_video_latent
 
     src_w, src_h = _source_canvas(plan, first_pass_images)
     if on_phase:
@@ -695,7 +695,7 @@ def _apply_h3_latent_upscale(
                 exc,
             )
             try:
-                from .h3_motion_context import apply_motion_context
+                from .models.h3.motion_context import apply_motion_context
 
                 refine_positive, _, _ = apply_motion_context(
                     refine_positive,
@@ -737,7 +737,7 @@ def _repin_after_upscale(
     locks to the look that will actually be concatenated.
     Else slice this clip's upscaled head. Last resort: encode prefix frames.
     """
-    from .h3_motion_context import (
+    from .models.h3.motion_context import (
         apply_motion_context,
         av_pixel_size,
         copy_av_tail_into_prefix,
@@ -834,7 +834,7 @@ def _relock_continue_refine(
     seam_min: float = 0.10,
 ) -> tuple[dict, bool]:
     """Rewrite the continue prefix + mask onto refine latent. No Guide keyframes."""
-    from .h3_latent_continue import apply_latent_continue
+    from .models.h3.latent_continue import apply_latent_continue
 
     n = max(0, int(pin_frames or 0))
     if n < 1:
@@ -1045,7 +1045,7 @@ def apply_segment_refine(
                     seam_min=float(getattr(plan, "continuity_redraw", 0.10)),
                 )
                 if locked:
-                    from .h3_latent_continue import install_continue_prefix_remask
+                    from .models.h3.latent_continue import install_continue_prefix_remask
 
                     continue_after_shift = install_continue_prefix_remask
                     note_parts.append(f"continue re-lock {pin_frames}f")

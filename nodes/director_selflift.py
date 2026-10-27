@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ..director.h3_latent_upscale import list_h3_latent_upscale_models
+from ..director.models.h3.latent_upscale import list_h3_latent_upscale_models
 from ..director.refine_pack import DEFAULT_SPATIAL_TILES, DEFAULT_TILE_OVERLAP, MAX_SPATIAL_TILES
 from ..director.selflift.pack import (
     DEFAULT_HIGHRES_STEPS,

@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from ..lib.image_prep import MINIMAX_CANVAS_STRIDE, ensure_minimax_canvas
+from ..lib.image_prep import MINIMAX_CANVAS_STRIDE, ensure_canvas
 
 MMX_DIR_REFINE = "MMX_DIR_REFINE"
 
@@ -190,14 +190,14 @@ def infer_upscale_target(base_w: int, base_h: int) -> tuple[int, int]:
     """Default 720p-class canvas from a 480p-class source (snap to H3 ×32)."""
     w, h = int(base_w or 0), int(base_h or 0)
     if w <= 0 or h <= 0:
-        return ensure_minimax_canvas(1280, 720)
+        return ensure_canvas(1280, 720)
     if w >= h:
         nh = 720
         nw = max(32, round(w * nh / h))
-        return ensure_minimax_canvas(nw, nh)
+        return ensure_canvas(nw, nh)
     nw = 720
     nh = max(32, round(h * nw / w))
-    return ensure_minimax_canvas(nw, nh)
+    return ensure_canvas(nw, nh)
 
 
 def canvas_from_source_megapixels(
@@ -223,12 +223,12 @@ def canvas_from_source_megapixels(
     width = ar * height
     tw = int(round(width / mult) * mult)
     th = int(round(height / mult) * mult)
-    tw, th = ensure_minimax_canvas(max(tw, mult), max(th, mult))
+    tw, th = ensure_canvas(max(tw, mult), max(th, mult))
     if tw < sw or th < sh:
         scale = max(sw / float(tw), sh / float(th), 1.0)
         tw = int(round(tw * scale / mult) * mult)
         th = int(round(th * scale / mult) * mult)
-        tw, th = ensure_minimax_canvas(max(tw, sw, mult), max(th, sh, mult))
+        tw, th = ensure_canvas(max(tw, sw, mult), max(th, sh, mult))
     return tw, th
 
 
@@ -282,7 +282,7 @@ def resolution_from_selector(
     scale = math.sqrt((mp * 1024 * 1024) / (w_ratio * h_ratio))
     width = int(round((w_ratio * scale) / mult) * mult)
     height = int(round((h_ratio * scale) / mult) * mult)
-    return ensure_minimax_canvas(max(width, mult), max(height, mult))
+    return ensure_canvas(max(width, mult), max(height, mult))
 
 
 def resolve_refine_target(
@@ -300,12 +300,12 @@ def resolve_refine_target(
     w, h = int(width or 0), int(height or 0)
     if is_follow_director_aspect(ar):
         if (legacy_w > 0 or legacy_h > 0) and w <= 0 and h <= 0:
-            return ensure_minimax_canvas(max(legacy_w, 32), max(legacy_h, 32))
+            return ensure_canvas(max(legacy_w, 32), max(legacy_h, 32))
         return 0, 0
     if is_custom_aspect_ratio(ar):
         cw = w or legacy_w or 1280
         ch = h or legacy_h or 720
-        return ensure_minimax_canvas(max(cw, 32), max(ch, 32))
+        return ensure_canvas(max(cw, 32), max(ch, 32))
     resolved = resolution_from_selector(ar, megapixels)
     if resolved is not None:
         return resolved
@@ -428,9 +428,9 @@ def normalize_refine_pack(
         elif tw <= 0 or th <= 0:
             tw, th = infer_upscale_target(bw, bh)
         else:
-            tw, th = ensure_minimax_canvas(tw, th)
+            tw, th = ensure_canvas(tw, th)
     elif tw > 0 and th > 0:
-        tw, th = ensure_minimax_canvas(tw, th)
+        tw, th = ensure_canvas(tw, th)
     seed_mode = str(raw.get("seed_mode") or "inherit").strip().lower()
     if seed_mode not in SEED_MODES:
         seed_mode = "inherit"

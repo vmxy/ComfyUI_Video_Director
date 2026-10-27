@@ -20,7 +20,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-log = logging.getLogger("ComfyUI-VideoDirector.director.h3_latent_upscale")
+log = logging.getLogger("ComfyUI-VideoDirector.models.h3.latent_upscale")
 
 LATENT_UPSCALE_FOLDER = "latent_upscale_models"
 MISSING_MODEL_LABEL = "(将 3D 权重放入 models/latent_upscale_models)"

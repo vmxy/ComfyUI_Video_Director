@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import comfy.samplers
 
-from ..director.h3_latent_upscale import list_h3_latent_upscale_models
+from ..director.models.h3.latent_upscale import list_h3_latent_upscale_models
 from ..director.refine_pack import (
     ASPECT_RATIO_CHOICES,
     DEFAULT_REFINE_SIGMA_SAMPLER,

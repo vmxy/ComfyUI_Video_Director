@@ -16,7 +16,7 @@ import logging
 
 import torch
 
-log = logging.getLogger("ComfyUI-VideoDirector.h3_context_patches")
+log = logging.getLogger("ComfyUI-VideoDirector.models.h3.context_patches")
 
 # Director-owned markers (not shared with third-party packs).
 CTX_FRAME_KEY = "director_context_index"

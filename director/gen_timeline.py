@@ -7,7 +7,7 @@ import logging
 import torch
 
 from ..lib.image_prep import (
-    assert_minimax_canvas,
+    assert_canvas,
     cat_frames_variable_size,
     fit_canvas,
     fit_video_long_edge,
@@ -481,7 +481,7 @@ def build_gen_director_plan(
             fixed_height=int(output_block.get("height") or timeline.get("height") or height),
         )
 
-    assert_minimax_canvas(out_w, out_h)
+    assert_canvas(out_w, out_h)
 
     export_mode = _resolve_export_mode(output_block)
     # Image prompt-batch (t2i/i2i/r2i) always merges to images list; video batch (t2v/i2v/r2v) respects export mode.

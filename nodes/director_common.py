@@ -236,6 +236,66 @@ def prepare_director_plan(
     semantic_bridge=None,
     refine=None,
     face_refine=None,
+    model_family=None,
+):
+    """Resolve the video model, build the plan, and validate its features."""
+    from ..director.models import (
+        get_model,
+        resolve_model_key,
+        use_model,
+        validate_plan_features,
+    )
+
+    vmodel = get_model(model_family)
+    with use_model(vmodel):
+        plan = _prepare_director_plan_impl(
+            timeline_data=timeline_data,
+            task_type=task_type,
+            global_prompt=global_prompt,
+            total_frames=total_frames,
+            frame_rate=frame_rate,
+            width=width,
+            height=height,
+            ref_max_size=ref_max_size,
+            unique_id=unique_id,
+            i2v_groups=i2v_groups,
+            r2v_groups=r2v_groups,
+            selflift=selflift,
+            semantic_bridge=semantic_bridge,
+            refine=refine,
+            face_refine=face_refine,
+        )
+    plan.model = vmodel
+    plan.model_key = vmodel.key
+    plan.model_warnings = validate_plan_features(plan, vmodel)
+    requested = str(model_family or "").strip()
+    if requested and not resolve_model_key(requested):
+        plan.model_warnings.insert(
+            0,
+            f"未知的模型族 '{requested}'，已回退到 {vmodel.display_name}。",
+        )
+    for warning in plan.model_warnings:
+        log.warning("%s", warning)
+    return plan
+
+
+def _prepare_director_plan_impl(
+    *,
+    timeline_data: str,
+    task_type: str,
+    global_prompt: str,
+    total_frames: int,
+    frame_rate: float,
+    width: int,
+    height: int,
+    ref_max_size: int,
+    unique_id: str | None,
+    i2v_groups=None,
+    r2v_groups=None,
+    selflift=None,
+    semantic_bridge=None,
+    refine=None,
+    face_refine=None,
 ):
     from ..director.external_groups import (
         build_plan_from_external_groups,
@@ -281,8 +341,11 @@ def prepare_director_plan(
         plan = _attach_semantic_bridge(plan, semantic_bridge)
         plan = _attach_refine(plan, refine)
         plan = _attach_face_refine(plan, face_refine)
+        from ..director.models import active_model
+
         log.info(
-            "VideoDirector: external %s groups × %d (task=%s) | %s",
+            "%s: external %s groups × %d (task=%s) | %s",
+            active_model().display_name,
             family,
             len(ext_groups),
             task_key,

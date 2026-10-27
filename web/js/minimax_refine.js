@@ -376,6 +376,25 @@ function directorValue(node, name, fallback) {
     return value == null || value === "" ? fallback : value;
 }
 
+/**
+ * Model family sent to the cache-status endpoint. Old workflows restore widget
+ * values by position, so a stale value (e.g. a BDGROUP title) can land in the
+ * new model_family slot - repair it against the dropdown choices instead of
+ * forwarding garbage to the backend.
+ */
+function directorModelFamily(director) {
+    const w = widgetByName(director, "model_family");
+    const value = widgetValue(w);
+    const choices = w?.options?.values;
+    if (Array.isArray(choices) && choices.length) {
+        if (typeof value === "string" && choices.includes(value)) return value;
+        const fallback = choices[0];
+        if (w) w.value = fallback;
+        return fallback;
+    }
+    return typeof value === "string" && value ? value : "MiniMax H3";
+}
+
 /** Fingerprint key → what the user actually changed. */
 const CACHE_DIFF_LABELS = {
     seed: "seed",
@@ -384,6 +403,7 @@ const CACHE_DIFF_LABELS = {
     prompt: "提示词",
     negative: "反向提示词",
     task_key: "生成模式",
+    model_family: "模型族",
     width: "宽度",
     height: "高度",
     frame_rate: "帧率",
@@ -590,6 +610,7 @@ function cacheStatusPayload(director, refine) {
         scheduler: String(directorValue(director, "scheduler", "")),
         shift_video: Number(directorValue(director, "shift_video", 12)),
         shift_audio: Number(directorValue(director, "shift_audio", 3)),
+        model_family: directorModelFamily(director),
         sigmas_linked: directorHasSigmasLink(director),
         // SelfLift is a graph-wired pack, not a Director widget. The run writes
         // sl_* into first-pass meta; the panel must send the same pack or it
