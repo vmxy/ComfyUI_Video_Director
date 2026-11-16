@@ -142,7 +142,6 @@ def _decode_av_latent(samples, vae, audio_vae, *, decode_audio: bool = True):
     Official VAE already writes pixels to ``intermediate_device()`` (CPU by default).
     """
     from nodes import VAEDecode
-
     images, = VAEDecode().decode(vae, samples)
     if not decode_audio or audio_vae is None:
         return images, empty_audio_dict()
@@ -871,6 +870,7 @@ def execute_director_plan_core(
 
         # Always build via official MiniMaxH3ImageToVideo / ReferenceToVideo.
         t_cond = time.perf_counter()
+        print(f"------- run one sentence index={seg.index} continuity_active={continuity_active} use_motion_context={use_motion_context}")
         positive, negative, latent, task_hint = run_minimax_conditioning(
             clip=clip,
             vae=vae,
@@ -888,6 +888,11 @@ def execute_director_plan_core(
             ref_audios=ref_audios,
             ref_image_size=official_ref_image_size(resolve_ref_image_size(seg, plan)),
         )
+        if audio_mode == AUDIO_MODE_SOURCE and ref_audios is not None and len(ref_audios)>0:
+            from .av_latent import replace_audio_and_lock
+            print(f"--- 使用原生, 锁定原声(添加声音遮罩) {ref_audios.keys()}")
+            latent = replace_audio_and_lock(latent, audio_vae, ref_audios["ref_audio_0"])
+
         cond_s = time.perf_counter() - t_cond
 
         from .semantic_bridge import apply_semantic_bridge
