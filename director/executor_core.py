@@ -870,7 +870,6 @@ def execute_director_plan_core(
 
         # Always build via official MiniMaxH3ImageToVideo / ReferenceToVideo.
         t_cond = time.perf_counter()
-        print(f"------- run one sentence index={seg.index} continuity_active={continuity_active} use_motion_context={use_motion_context}")
         positive, negative, latent, task_hint = run_minimax_conditioning(
             clip=clip,
             vae=vae,
@@ -892,6 +891,7 @@ def execute_director_plan_core(
             from .av_latent import replace_audio_and_lock
             print(f"--- 使用原生, 锁定原声(添加声音遮罩) {ref_audios.keys()}")
             latent = replace_audio_and_lock(latent, audio_vae, ref_audios["ref_audio_0"])
+        print(f"--- run_one_segment index={seg.index} use_motion_context={use_motion_context} sample_len={sample_len} context_n={context_n} target_len={target_len}")
 
         cond_s = time.perf_counter() - t_cond
 
@@ -1453,6 +1453,7 @@ def execute_director_plan_core(
             export_len=export_len,
             plan=plan,
         )
+        print(f"--- _trim_decoded_to_export decoded.shape={decoded.shape} audio_dict={audio_dict.keys()} sample_rate={audio_dict.get('sample_rate')} sample_len={sample_len} export_len={export_len} target_len={target_len} trim_frames={trim_frames} num_frames={num_frames}")
         report_director_progress(
             progress_node_id, segment_index=progress_index, segment_total=seg_total,
             phase="decode", phase_value=1, phase_max=1, **meta,
