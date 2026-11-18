@@ -889,9 +889,11 @@ def execute_director_plan_core(
         )
         if audio_mode == AUDIO_MODE_SOURCE and ref_audios is not None and len(ref_audios)>0:
             from .av_latent import replace_audio_and_lock
-            print(f"--- 使用原生, 锁定原声(添加声音遮罩) {ref_audios.keys()}")
-            latent = replace_audio_and_lock(latent, audio_vae, ref_audios["ref_audio_0"])
-        print(f"--- run_one_segment index={seg.index} use_motion_context={use_motion_context} sample_len={sample_len} context_n={context_n} target_len={target_len}")
+            audio_name =  list(ref_audios.keys())[0]
+            reports.append(f"使用原生, 锁定原声(添加声音遮罩) {ref_audios.keys()} -> {audio_name}")
+            log.info(f"使用原生, 锁定原声(添加声音遮罩) {ref_audios.keys()} -> {audio_name}")
+            latent = replace_audio_and_lock(latent, audio_vae, ref_audios[audio_name])
+        log.info(f"--- run_one_segment index={seg.index} use_motion_context={use_motion_context} sample_len={sample_len} context_n={context_n} target_len={target_len}")
 
         cond_s = time.perf_counter() - t_cond
 
