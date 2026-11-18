@@ -893,7 +893,7 @@ def execute_director_plan_core(
             reports.append(f"使用原生, 锁定原声(添加声音遮罩) {ref_audios.keys()} -> {audio_name}")
             log.info(f"使用原生, 锁定原声(添加声音遮罩) {ref_audios.keys()} -> {audio_name}")
             latent = replace_audio_and_lock(latent, audio_vae, ref_audios[audio_name])
-        log.info(f"--- run_one_segment index={seg.index} use_motion_context={use_motion_context} sample_len={sample_len} context_n={context_n} target_len={target_len}")
+        log.info(f"--- run_one_segment index={seg.index} use_motion_context={use_motion_context} sample_len={sample_len} num_frames={num_frames} context_n={context_n} target_len={target_len}")
 
         cond_s = time.perf_counter() - t_cond
 

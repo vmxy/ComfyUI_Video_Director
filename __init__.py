@@ -18,6 +18,12 @@ from .nodes.director_groups import (
     MiniMaxH3DirectorGroupReferenceToVideo,
     MiniMaxH3DirectorGroupsCombine,
 )
+from .nodes.help import (
+    VideoCalSegFrame,
+    SliceAudio,
+)
+
+
 
 NODE_CLASS_MAPPINGS = {
     "MiniMaxH3Director": MiniMaxH3Director,
@@ -34,6 +40,8 @@ NODE_CLASS_MAPPINGS = {
     # Must stay in NODE_CLASS_MAPPINGS: ComfyUI skips comfy_entrypoint when
     # NODE_CLASS_MAPPINGS is present (if/elif in load_custom_node).
     "MiniMaxH3DirectorGroupsCombine": MiniMaxH3DirectorGroupsCombine,
+    "XVideoCalSegFrame": VideoCalSegFrame,
+    "XVSliceAudio": SliceAudio,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -48,6 +56,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "MiniMaxH3DirectorGroupImageToVideo": "MiniMax H3 Director Group (Image to Video)",
     "MiniMaxH3DirectorGroupReferenceToVideo": "MiniMax H3 Director Group (Reference to Video)",
     "MiniMaxH3DirectorGroupsCombine": "MiniMax H3 Director Groups Combine",
+    "XVideoCalSegFrame": "Video Calculate Segment Frame Count",
+    "XVSliceAudio": "Slice Audio Frame 剪切音频",
 }
 
 WEB_DIRECTORY = "./web/js"
